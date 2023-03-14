@@ -1,0 +1,62 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int        @id @default(autoincrement())
+  nickName     String?
+  firstName    String?
+  lastName     String?
+  telegramName String?
+  email        String     @unique
+  passwordHash String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  Artist       Artist?
+  Organizer    Organizer?
+  Visitor      Visitor?
+}
+
+model Artist {
+  id     Int     @id @default(autoincrement())
+  userId Int     @unique
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  style  String
+  events Event[]
+}
+
+model Organizer {
+  id           Int     @id @default(autoincrement())
+  userId       Int     @unique
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mainLocation String?
+  events       Event[]
+}
+
+model Visitor {
+  id     Int  @id @default(autoincrement())
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Event {
+  id          Int       @id @default(autoincrement())
+  name String
+  description String
+  ogranizerId Int
+  ogranizer   Organizer @relation(fields: [ogranizerId], references: [id], onDelete: Cascade)
+  artisitId   Int
+  artists     Artist    @relation(fields: [artisitId], references: [id], onDelete: Cascade)
+  visitorsId  Int?
+  location    String
+  dateStart   DateTime?
+  dateEnd     DateTime?
+}
