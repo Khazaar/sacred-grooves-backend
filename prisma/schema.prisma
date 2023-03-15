@@ -23,14 +23,16 @@ model User {
   Artist       Artist?
   Organizer    Organizer?
   Visitor      Visitor?
+  roles        String[]
 }
 
 model Artist {
-  id     Int     @id @default(autoincrement())
-  userId Int     @unique
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  style  String
-  events Event[]
+  id         Int     @id @default(autoincrement())
+  userId     Int     @unique
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  style      String
+  events     Event[]
+  isApproved Boolean @default(false)
 }
 
 model Organizer {
@@ -39,6 +41,7 @@ model Organizer {
   user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   mainLocation String?
   events       Event[]
+  isApproved   Boolean @default(false)
 }
 
 model Visitor {
@@ -49,7 +52,7 @@ model Visitor {
 
 model Event {
   id          Int       @id @default(autoincrement())
-  name String
+  name        String
   description String
   ogranizerId Int
   ogranizer   Organizer @relation(fields: [ogranizerId], references: [id], onDelete: Cascade)
@@ -59,4 +62,5 @@ model Event {
   location    String
   dateStart   DateTime?
   dateEnd     DateTime?
+  isApproved  Boolean   @default(false)
 }

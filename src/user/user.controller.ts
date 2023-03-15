@@ -1,4 +1,4 @@
-import { EditUserDto } from "./dto/editUser.dto";
+import { CreateUserDto, EditUserDto } from "./user.dto";
 import { JwtGuard } from "./../auth/guard";
 import {
     Body,
@@ -7,6 +7,7 @@ import {
     Param,
     ParseIntPipe,
     Patch,
+    Post,
     Req,
     UseGuards,
 } from "@nestjs/common";
@@ -19,6 +20,11 @@ import { UserService } from "./user.service";
 @Controller("users")
 export class UserController {
     constructor(private readonly userService: UserService) {}
+
+    @Post()
+    public async createUser(@Body() dto: CreateUserDto, @GetUser() user: User) {
+        return this.userService.createUser(user.id, dto);
+    }
     @Get()
     public async getAllUsers() {
         return this.userService.getAllUsers();
