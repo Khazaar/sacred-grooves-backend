@@ -5,6 +5,7 @@ import {
     Get,
     Param,
     ParseIntPipe,
+    Patch,
     Post,
     SetMetadata,
     UseGuards,
@@ -32,5 +33,10 @@ export class EventController {
     @Get(":id")
     public async getEventById(@Param("id", ParseIntPipe) id: number) {
         return await this.eventService.getEventById(id);
+    }
+    @Patch(":id")
+    @Roles(Role.Moderator)
+    public async approveEventById(@Param("id", ParseIntPipe) id: number) {
+        return await this.eventService.approveEventById(id);
     }
 }

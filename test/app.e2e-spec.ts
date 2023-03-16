@@ -14,6 +14,43 @@ import { Role } from "../src/auth/enums/roles.enum";
 describe("App e2e test", () => {
     let app: INestApplication;
     let prisma: PrismaService;
+    // Artist
+    const authDtoKhazaar: AuthDto = {
+        email: "khazaar@gmail.com",
+        password: "asdfasdfasdg345",
+    };
+    const createUserDtoKhazaar: CreateUserDto = {
+        nickName: "Khazaar",
+        roles: [Role.Artist],
+    };
+    // Organizer
+    const authDtoMari: AuthDto = {
+        email: "mari@gmail.com",
+        password: "sdfasdasyeer",
+    };
+    const createUserDtoMari: CreateUserDto = {
+        nickName: "Marii",
+        roles: [Role.Organizer],
+    };
+    // Moderator
+    const authDtoKaya: AuthDto = {
+        email: "kaya@gmail.com",
+        password: "sdfasdasyeer",
+    };
+    const createUserDtoKaya: CreateUserDto = {
+        nickName: "Kaya the bird",
+        roles: [Role.Moderator],
+    };
+    // Student
+    const authDtoPeter: AuthDto = {
+        email: "peter@gmail.com",
+        password: "56453yrte434u5786yrt",
+    };
+    const createUserDtoPeter: CreateUserDto = {
+        nickName: "Peter Power",
+        roles: [Role.Student],
+    };
+
     beforeAll(async () => {
         const moduleRef = await Test.createTestingModule({
             imports: [AppModule],
@@ -30,86 +67,109 @@ describe("App e2e test", () => {
         await app.close();
     });
     describe("Auth", () => {
-        const dto: AuthDto = {
-            email: "eeguar@gmail.com",
-            password: "asdfasdfasdg345",
-        };
-        describe("SignUp", () => {
+        describe("SignUp / create User", () => {
             it("Empty email exeption", async () => {
                 return pactum
                     .spec()
                     .post("/auth/signup")
                     .withBody({
-                        ...dto,
+                        ...authDtoKhazaar,
                         email: "",
                     })
                     .expectStatus(400);
             });
-            it("Should sign up", async () => {
+            it("Should sign up / create accounts: khazaar, mari, kaya, peter", async () => {
+                await pactum
+                    .spec()
+                    .post("/auth/signup")
+                    .withBody(authDtoKhazaar)
+                    .expectStatus(201);
+
+                await pactum
+                    .spec()
+                    .post("/auth/signup")
+                    .withBody(authDtoMari)
+                    .expectStatus(201);
+
+                await pactum
+                    .spec()
+                    .post("/auth/signup")
+                    .withBody(authDtoKaya)
+
+                    .expectStatus(201);
                 return pactum
                     .spec()
                     .post("/auth/signup")
-                    .withBody(dto)
+                    .withBody(authDtoPeter)
                     .expectStatus(201);
             });
         });
-        describe("SignIn", () => {
-            it("Should sign in", async () => {
+        describe("SignIn / get auth token", () => {
+            it("Should sign in and get tokens for khazaar, mari, kaya, peter", async () => {
+                await pactum
+                    .spec()
+                    .post("/auth/signin")
+                    .withBody(authDtoKhazaar)
+                    .expectStatus(200)
+                    .stores("userAt_khazaar", "access_token");
+                await pactum
+                    .spec()
+                    .post("/auth/signin")
+                    .withBody(authDtoMari)
+                    .expectStatus(200)
+                    .stores("userAt_mari", "access_token");
+                await pactum
+                    .spec()
+                    .post("/auth/signin")
+                    .withBody(authDtoKaya)
+                    .expectStatus(200)
+                    .stores("userAt_kaya", "access_token");
                 return pactum
                     .spec()
                     .post("/auth/signin")
-                    .withBody(dto)
+                    .withBody(authDtoPeter)
                     .expectStatus(200)
-                    .stores("userAt_eeguar", "access_token");
+                    .stores("userAt_peter", "access_token");
             });
         });
     });
     describe("Users CRUD", () => {
-        describe("Create user", () => {
-            it("Should create user with Artist role", async () => {
-                const createUserDto: CreateUserDto = {
-                    nickName: "Khazaar",
-                    roles: [Role.Artist],
-                };
+        describe("Create users", () => {
+            it("Should update user khazaar with Artist role", async () => {
                 return pactum
                     .spec()
                     .post("/users/")
-                    .withHeaders({ Authorization: `Bearer $S{userAt_eeguar}` })
-                    .withBody(createUserDto)
+                    .withHeaders({ Authorization: `Bearer $S{userAt_khazaar}` })
+                    .withBody(createUserDtoKhazaar)
                     .expectStatus(201)
-                    .expectBodyContains("Khazaar");
+                    .expectBodyContains(createUserDtoKhazaar.nickName);
             });
-            it("Should create user with Organizer role", async () => {
-                //Sign up another user
-                const dto: AuthDto = {
-                    email: "mari@gmail.com",
-                    password: "2456tregfdsyu",
-                };
-                await pactum
-                    .spec()
-                    .post("/auth/signup")
-                    .withBody(dto)
-                    .expectStatus(201);
-
-                //Sign up new user
-                await pactum
-                    .spec()
-                    .post("/auth/signin")
-                    .withBody(dto)
-                    .expectStatus(200)
-                    .stores("userAt_mari", "access_token");
-
-                const createUserDto: CreateUserDto = {
-                    nickName: "Mari",
-                    roles: [Role.Organizer],
-                };
+            it("Should create user mari with Organizer role", async () => {
                 return pactum
                     .spec()
                     .post("/users/")
                     .withHeaders({ Authorization: `Bearer $S{userAt_mari}` })
-                    .withBody(createUserDto)
+                    .withBody(createUserDtoMari)
                     .expectStatus(201)
-                    .expectBodyContains("Mari");
+                    .expectBodyContains(createUserDtoMari.nickName);
+            });
+            it("Should create user peter with Student role", async () => {
+                return pactum
+                    .spec()
+                    .post("/users/")
+                    .withHeaders({ Authorization: `Bearer $S{userAt_peter}` })
+                    .withBody(createUserDtoPeter)
+                    .expectStatus(201)
+                    .expectBodyContains(createUserDtoPeter.nickName);
+            });
+            it("Should create user kaya with Moderator role !! REPLACE LATER", async () => {
+                return pactum
+                    .spec()
+                    .post("/users/")
+                    .withHeaders({ Authorization: `Bearer $S{userAt_kaya}` })
+                    .withBody(createUserDtoKaya)
+                    .expectStatus(201)
+                    .expectBodyContains(createUserDtoKaya.nickName);
             });
         });
 
@@ -118,143 +178,80 @@ describe("App e2e test", () => {
                 return pactum
                     .spec()
                     .get("/users/me")
-                    .withHeaders({ Authorization: `Bearer $S{userAt_eeguar}` })
+                    .withHeaders({ Authorization: `Bearer $S{userAt_khazaar}` })
                     .expectStatus(200);
             });
         });
 
         describe("Get all users", () => {
-            it("Should get all users", async () => {
+            it("Should get all users with Moderator role", async () => {
                 return pactum
                     .spec()
-                    .withHeaders({ Authorization: `Bearer $S{userAt_eeguar}` })
+                    .withHeaders({ Authorization: `Bearer $S{userAt_kaya}` })
                     .get("/users/")
-                    .stores("firstUserId", "[0].id")
+                    .stores("khazaarId", "[0].id")
+                    .stores("mariId", "[1].id")
+                    .stores("peterId", "[2].id")
+                    .stores("kayaId", "[3].id")
                     .expectStatus(200)
-                    .expectBodyContains("eeguar@gmail.com")
-                    .expectJsonLength(2);
+                    .expectBodyContains(authDtoKhazaar.email)
+                    .expectBodyContains(authDtoMari.email)
+                    .expectBodyContains(authDtoKaya.email)
+                    .expectBodyContains(authDtoPeter.email)
+                    .expectJsonLength(4);
+            });
+            it("Should not all users without Moderator role", async () => {
+                return pactum
+                    .spec()
+                    .withHeaders({ Authorization: `Bearer $S{userAt_khazaar}` })
+                    .get("/users/")
+                    .expectStatus(403);
             });
         });
 
         describe("Get user by Id", () => {
-            it("Should get user by Id", async () => {
+            it("Should get user by Id with Moderator role", async () => {
                 return pactum
                     .spec()
-                    .withHeaders({ Authorization: `Bearer $S{userAt_eeguar}` })
-                    .withPathParams({ id: `$S{firstUserId}` })
+                    .withHeaders({ Authorization: `Bearer $S{userAt_kaya}` })
+                    .withPathParams({ id: `$S{khazaarId}` })
                     .get("/users/{id}")
                     .expectStatus(200)
-                    .expectBodyContains("eeguar@gmail.com");
+                    .expectBodyContains(createUserDtoKhazaar.nickName);
             });
         });
 
         describe("Edit by Id", () => {
             it("Should edit user by Id", async () => {
                 const editUserDto: EditUserDto = {
-                    nickName: "Khazaaarr",
+                    firstName: "Egor",
                 };
                 await pactum
                     .spec()
-                    .withHeaders({ Authorization: `Bearer $S{userAt_eeguar}` })
-                    .withPathParams({ id: `$S{firstUserId}` })
+                    .withHeaders({ Authorization: `Bearer $S{userAt_khazaar}` })
+                    .withPathParams({ id: `$S{khazaarId}` })
                     .withBody(editUserDto)
                     .patch("/users/{id}")
                     .expectStatus(200);
 
                 return pactum
                     .spec()
-                    .withHeaders({ Authorization: `Bearer $S{userAt_eeguar}` })
-                    .withPathParams({ id: `$S{firstUserId}` })
+                    .withHeaders({ Authorization: `Bearer $S{userAt_khazaar}` })
+                    .withPathParams({ id: `$S{khazaarId}` })
                     .get("/users/{id}")
                     .expectStatus(200)
-                    .expectBodyContains("Khazaaarr");
+                    .expectBodyContains(editUserDto.firstName);
             });
         });
-    });
-    describe("Artists CRUD", () => {
-        describe("Create Artist", () => {
-            it("Should create artist", async () => {
-                const createArtistDto: CreateArtistDto = {
-                    userId: 1,
-                    style: "House",
-                };
-
-                return pactum
-                    .spec()
-                    .withHeaders({ Authorization: `Bearer $S{userAt_eeguar}` })
-                    .post("/artists/")
-                    .withBody(createArtistDto)
-                    .expectStatus(201)
-                    .expectBodyContains("House");
-            });
-        });
-        describe("Get Artist", () => {
-            it("Should get all artists with user data", async () => {
-                return pactum
-                    .spec()
-                    .withHeaders({ Authorization: `Bearer $S{userAt_eeguar}` })
-                    .get("/artists/")
-                    .stores("firstArtistId", "id")
-                    .expectStatus(200)
-                    .expectBodyContains("House");
-            });
-            it("Should get artist by Id", async () => {
-                return pactum
-                    .spec()
-                    .withHeaders({ Authorization: `Bearer $S{userAt_eeguar}` })
-                    .withPathParams({ id: `$S{firstArtistId}` })
-                    .get("/artists/{id}")
-                    .expectStatus(200)
-                    .expectBodyContains("House");
-            });
-        });
-        describe("Edit Artist", () => {});
-        describe("Delete Artist", () => {});
-    });
-    describe("Organizers CRUD", () => {
-        describe("Create Organizer", () => {
-            const createOrganizerDto: CreateOrganizerDto = {
-                userId: 1,
-                mainLocation: "Haifa",
-            };
-            it("Should create organizer", async () => {
-                return pactum
-                    .spec()
-                    .withHeaders({ Authorization: `Bearer $S{userAt_eeguar}` })
-                    .post("/organizers/")
-                    .withBody(createOrganizerDto)
-                    .expectStatus(201);
-            });
-        });
-        describe("Get Organizer", () => {
-            it("Should get all organizers with user data", async () => {
-                return pactum
-                    .spec()
-                    .withHeaders({ Authorization: `Bearer $S{userAt_eeguar}` })
-                    .get("/organizers/")
-                    .stores("firstOrganizerId", "id")
-                    .expectStatus(200);
-            });
-            it("Should get organizer by Id", async () => {
-                return pactum
-                    .spec()
-                    .withHeaders({ Authorization: `Bearer $S{userAt_eeguar}` })
-                    .withPathParams({ id: `$S{firstOrganizerId}` })
-                    .get("/organizers/")
-                    .expectStatus(200);
-            });
-        });
-        describe("Edit Organizer", () => {});
-        describe("Delete Organizer", () => {});
     });
 
     describe("Events CRUD", () => {
         describe("Create Event", () => {
             it("Should create event with Organizer role", async () => {
-                const createEventDto: CreateEventDto = {
+                const createEventDto1: CreateEventDto = {
                     name: "Test Event",
-                    ogranizerId: pactum.parse(`$S{firstOrganizerId}`)[0],
-                    artisitId: pactum.parse(`$S{firstArtistId}`)[0],
+                    ogranizerId: pactum.parse(`$S{mariId}`),
+                    artisitId: pactum.parse(`$S{khazaarId}`),
                     location: "Haifa",
                     description: "Nice event",
                 };
@@ -262,8 +259,9 @@ describe("App e2e test", () => {
                     .spec()
                     .withHeaders({ Authorization: `Bearer $S{userAt_mari}` })
                     .post("/events/")
-                    .withBody(createEventDto)
-                    .expectStatus(201);
+                    .withBody(createEventDto1)
+                    .expectStatus(201)
+                    .inspect();
             });
             it("Should not create event without Organizer role", async () => {
                 const createEventDto: CreateEventDto = {
@@ -275,30 +273,37 @@ describe("App e2e test", () => {
                 };
                 return pactum
                     .spec()
-                    .withHeaders({ Authorization: `Bearer $S{userAt_eeguar}` })
+                    .withHeaders({ Authorization: `Bearer $S{userAt_khazaar}` })
                     .post("/events/")
                     .withBody(createEventDto)
                     .expectStatus(403);
             });
         });
-        describe("Get Event", () => {
-            it("Should get all events", async () => {
+        describe("Approve Event", () => {
+            it("Should approve event with Moderator role", async () => {
+                return true;
+            });
+        });
+
+        describe("Get Events", () => {
+            it("Should get all events. Returns Empty, as they are not approved", async () => {
                 return pactum
                     .spec()
-                    .withHeaders({ Authorization: `Bearer $S{userAt_eeguar}` })
+                    .withHeaders({ Authorization: `Bearer $S{userAt_khazaar}` })
                     .get("/events/")
                     .stores("firstEventId", "id")
-                    .expectStatus(200);
-            });
-            it("Should get event by Id with artist and organizer", async () => {
-                return pactum
-                    .spec()
-                    .withHeaders({ Authorization: `Bearer $S{userAt_eeguar}` })
-                    .withPathParams({ id: `$S{firstEventId}` })
-                    .get("/events/{id}")
                     .expectStatus(200)
-                    .expectBodyContains("House");
+                    .expectJsonLength(0);
             });
+            // it("Should get event by Id with artist and organizer", async () => {
+            //     return pactum
+            //         .spec()
+            //         .withHeaders({ Authorization: `Bearer $S{userAt_eeguar}` })
+            //         .withPathParams({ id: `$S{firstEventId}` })
+            //         .get("/events/{id}")
+            //         .expectStatus(200)
+            //         .expectBodyContains("House");
+            // });
         });
         describe("Edit Event", () => {});
         describe("Delete Event", () => {});

@@ -12,11 +12,13 @@ import {
     UseGuards,
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
-import { GetUser } from "../auth/decorator";
+import { GetUser, Roles } from "../auth/decorator";
 import { User } from "@prisma/client";
 import { UserService } from "./user.service";
+import { RolesGuard } from "../auth/guard/roles.guard";
+import { Role } from "../auth/enums/roles.enum";
 
-@UseGuards(JwtGuard)
+@UseGuards(JwtGuard, RolesGuard)
 @Controller("users")
 export class UserController {
     constructor(private readonly userService: UserService) {}
@@ -26,6 +28,7 @@ export class UserController {
         return this.userService.createUser(user.id, dto);
     }
     @Get()
+    @Roles(Role.Moderator)
     public async getAllUsers() {
         return this.userService.getAllUsers();
     }
