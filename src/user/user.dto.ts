@@ -9,10 +9,6 @@ export class CreateUserDto {
     lastName?: string;
     @IsOptional()
     telegramName?: string;
-    @IsNotEmpty()
-    @IsArray()
-    @ArrayMinSize(1)
-    roles: string[];
 }
 
 export class EditUserDto {

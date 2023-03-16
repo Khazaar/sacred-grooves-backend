@@ -37,13 +37,17 @@ export class UserController {
     public async getMe(@GetUser() user: User) {
         return user;
     }
+    @Patch("me")
+    public async editMe(@GetUser() user: User, @Body() dto: EditUserDto) {
+        return this.userService.editUser(user.id, dto);
+    }
 
     @Get(":id")
     public getUserById(@Param("id", ParseIntPipe) id: number) {
         return this.userService.getUserById(id);
     }
-    @Patch(":id")
-    editUser(@Param("id", ParseIntPipe) id: number, @Body() dto: EditUserDto) {
-        return this.userService.editUser(id, dto);
-    }
+    // @Patch(":id")
+    // editUser(@Param("id", ParseIntPipe) id: number, @Body() dto: EditUserDto) {
+    //     return this.userService.editUser(id, dto);
+    // }
 }
