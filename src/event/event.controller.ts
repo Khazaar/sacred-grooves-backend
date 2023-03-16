@@ -22,7 +22,7 @@ export class EventController {
     constructor(private readonly eventService: EventService) {}
 
     @Post()
-    @Roles(Role.NetworkAdmin, Role.Organizer)
+    @Roles(Role.Organizer)
     public async createEvent(@Body() dto: CreateEventDto) {
         return await this.eventService.createEvent(dto);
     }

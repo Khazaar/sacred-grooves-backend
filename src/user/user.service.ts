@@ -12,7 +12,6 @@ export class UserService {
             where: { id: userId },
             data: {
                 nickName: data.nickName,
-                roles: data.roles,
             },
         });
         if (!user) {

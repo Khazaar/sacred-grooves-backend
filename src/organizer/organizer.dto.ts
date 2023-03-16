@@ -1,8 +1,6 @@
 import { IsNotEmpty, IsOptional } from "class-validator";
 
 export class CreateOrganizerDto {
-    @IsNotEmpty()
-    userId: number;
     @IsOptional()
     mainLocation: string;
 }
