@@ -4,4 +4,5 @@ export enum Role {
     User = "User",
     Organizer = "Organizer",
     Artist = "Artist",
+    Student = "Student",
 }
