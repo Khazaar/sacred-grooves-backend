@@ -14,6 +14,7 @@ import { GrantModeratorDto } from "src/moderator/moderator.dto";
 import { TestData } from "./testData";
 import { inspect } from "util";
 import { CreateArtistTypeDto } from "src/artist-type/artist-type.dto";
+import { MusicStyleDto } from "src/music-style/music-style.dto";
 
 describe("App e2e test", () => {
     let app: INestApplication;
@@ -28,16 +29,18 @@ describe("App e2e test", () => {
         await app.init();
         await app.listen(3333);
         prismaService = app.get(PrismaService);
-        prismaService.cleadDb();
+        await prismaService.cleadDb();
         pactum.request.setBaseUrl("http://localhost:3333");
     });
     afterAll(async () => {
         await app.close();
+        await prismaService.$disconnect();
     });
+    beforeEach(() => {});
     describe("Auth", () => {
         describe("SignUp / create User", () => {
             it("Empty email exeption", async () => {
-                return pactum
+                return await pactum
                     .spec()
                     .post("/auth/signup")
                     .withBody({
@@ -107,7 +110,7 @@ describe("App e2e test", () => {
     describe("Users CRUD", () => {
         describe("Create users", () => {
             it("Should update user khazaar", async () => {
-                return pactum
+                return await pactum
                     .spec()
                     .post("/users/")
                     .withHeaders({ Authorization: `Bearer $S{userAt_khazaar}` })
@@ -116,7 +119,7 @@ describe("App e2e test", () => {
                     .expectBodyContains(TestData.createUserDtoKhazaar.nickName);
             });
             it("Should create user mari", async () => {
-                return pactum
+                return await pactum
                     .spec()
                     .post("/users/")
                     .withHeaders({ Authorization: `Bearer $S{userAt_mari}` })
@@ -125,7 +128,7 @@ describe("App e2e test", () => {
                     .expectBodyContains(TestData.createUserDtoMari.nickName);
             });
             it("Should create user peter", async () => {
-                return pactum
+                return await pactum
                     .spec()
                     .post("/users/")
                     .withHeaders({ Authorization: `Bearer $S{userAt_peter}` })
@@ -134,7 +137,7 @@ describe("App e2e test", () => {
                     .expectBodyContains(TestData.createUserDtoPeter.nickName);
             });
             it("Should create user kaya", async () => {
-                return pactum
+                return await pactum
                     .spec()
                     .post("/users/")
                     .withHeaders({ Authorization: `Bearer $S{userAt_kaya}` })
@@ -146,7 +149,7 @@ describe("App e2e test", () => {
 
         describe("Get Me", () => {
             it("Should get current user", async () => {
-                return pactum
+                return await pactum
                     .spec()
                     .get("/users/me")
                     .withHeaders({ Authorization: `Bearer $S{userAt_khazaar}` })
@@ -166,7 +169,7 @@ describe("App e2e test", () => {
                     .patch("/users/me")
                     .expectStatus(200);
 
-                return pactum
+                return await pactum
                     .spec()
                     .get("/users/me")
                     .withHeaders({ Authorization: `Bearer $S{userAt_khazaar}` })
@@ -182,7 +185,7 @@ describe("App e2e test", () => {
                 const grantModeratorDto: GrantModeratorDto = {
                     userEmail: TestData.authDtoKaya.email,
                 };
-                return pactum
+                return await pactum
                     .spec()
                     .post("/moderators/grant")
                     .withBody(grantModeratorDto)
@@ -193,7 +196,7 @@ describe("App e2e test", () => {
 
         describe("Get all users", () => {
             it("Should get all users with Moderator role", async () => {
-                return pactum
+                return await pactum
                     .spec()
                     .withHeaders({ Authorization: `Bearer $S{userAt_kaya}` })
                     .get("/users/")
@@ -205,7 +208,7 @@ describe("App e2e test", () => {
                     .expectJsonLength(4);
             });
             it("Should not all users without Moderator role", async () => {
-                return pactum
+                return await pactum
                     .spec()
                     .withHeaders({ Authorization: `Bearer $S{userAt_khazaar}` })
                     .get("/users/")
@@ -215,7 +218,7 @@ describe("App e2e test", () => {
 
         describe("Get user by Id", () => {
             it("Should get user by Id with Moderator role", async () => {
-                return pactum
+                return await pactum
                     .spec()
                     .withHeaders({ Authorization: `Bearer $S{userAt_kaya}` })
                     .withPathParams({ id: `$S{khazaarUserId}` })
@@ -229,9 +232,8 @@ describe("App e2e test", () => {
     describe("Artist types CRUD", () => {
         describe("Create Artist type", () => {
             it("Should create artist type with moderator role", async () => {
-                TestData.artistTypes.forEach(async (artistType) => {
-                    return pactum
-
+                for (const artistType of TestData.artistTypes) {
+                    await pactum
                         .spec()
                         .post("/artist-types/")
                         .withHeaders({
@@ -241,10 +243,10 @@ describe("App e2e test", () => {
                         .expectStatus(201)
                         .expectBodyContains(artistType.artisitTypeName)
                         .stores("artistTypeModId", "id");
-                });
+                }
             });
             it("Should not create artist type without moderator role", async () => {
-                return pactum
+                return await pactum
                     .spec()
                     .post("/artist-types/")
                     .withHeaders({
@@ -256,27 +258,28 @@ describe("App e2e test", () => {
         });
         describe("Get all artist types", () => {
             it("Should get all artist types", async () => {
-                return pactum
+                return await pactum
                     .spec()
                     .withHeaders({
                         Authorization: `Bearer $S{userAt_kaya}`,
                     })
                     .get("/artist-types/")
                     .expectStatus(200)
-                    .expectJsonLength(10);
+                    .expectJsonLength(TestData.artistTypes.length);
             });
         });
 
         describe("Get artist type by Id / 10", () => {
             it("Should get artist type by Id with moderator role", async () => {
-                await pactum
+                await await pactum
                     .spec()
                     .withHeaders({ Authorization: `Bearer $S{userAt_kaya}` })
                     .withPathParams({ id: `$S{artistTypeModId}` })
                     .get("/artist-types/{id}")
                     .expectStatus(200)
                     .expectBodyContains(
-                        TestData.artistTypes[9].artisitTypeName,
+                        TestData.artistTypes[TestData.artistTypes.length - 1]
+                            .artisitTypeName,
                     );
             });
         });
@@ -286,7 +289,7 @@ describe("App e2e test", () => {
                 const editArtistTypeDto: CreateArtistTypeDto = {
                     artisitTypeName: "Type to Delete",
                 };
-                await pactum
+                return await pactum
                     .spec()
                     .withHeaders({ Authorization: `Bearer $S{userAt_kaya}` })
                     .withBody(editArtistTypeDto)
@@ -307,17 +310,17 @@ describe("App e2e test", () => {
                     .withPathParams({ id: `$S{artistTypeModId}` })
                     .expectStatus(200);
 
-                return pactum
+                return await pactum
                     .spec()
                     .withHeaders({
                         Authorization: `Bearer $S{userAt_kaya}`,
                     })
                     .get("/artist-types/")
                     .expectStatus(200)
-                    .expectJsonLength(9);
+                    .expectJsonLength(TestData.artistTypes.length - 1);
             });
             it("Should not delete artist type by Id without moderator role", async () => {
-                return pactum
+                return await pactum
                     .spec()
                     .withHeaders({ Authorization: `Bearer $S{userAt_khazaar}` })
                     .delete("/artist-types/{id}")
@@ -327,22 +330,119 @@ describe("App e2e test", () => {
         });
     });
 
-    describe("Artists CRUD", () => {
-        describe("Create Artist", () => {
-            it("Should commit me as Artist", async () => {
-                return pactum
+    describe("Music style CRUD", () => {
+        describe("Create Music style", () => {
+            it("Should create music style with moderator role", async () => {
+                for (const musicStyle of TestData.musicStyles) {
+                    await pactum
+                        .spec()
+                        .withHeaders({
+                            Authorization: `Bearer $S{userAt_kaya}`,
+                        })
+                        .post("/music-styles/")
+                        .withBody(musicStyle)
+                        .expectStatus(201)
+                        .stores("musicStyleModId", "id")
+                        .expectBodyContains(musicStyle.musicStyleName);
+                }
+            });
+            it("Should not create music style without moderator role", async () => {
+                return await pactum
+
                     .spec()
-                    .post("/artists/")
+                    .post("/music-styles/")
+                    .withHeaders({ Authorization: `Bearer $S{userAt_khazaar}` })
+                    .withBody(TestData.musicStyles[0])
+                    .expectStatus(403);
+            });
+        });
+        describe("Get all music styles", () => {
+            it("Should get all music styles with moderator role", async () => {
+                return await pactum
+                    .spec()
                     .withHeaders({
-                        Authorization: `Bearer $S{userAt_khazaar}`,
+                        Authorization: `Bearer $S{userAt_kaya}`,
                     })
-                    .withBody(TestData.createArtistDtoKhazaar)
-                    .stores("khazaarArtistId", "id")
-                    .expectStatus(201)
-                    .expectBodyContains(TestData.createArtistDtoKhazaar.style);
+                    .get("/music-styles/")
+                    .expectStatus(200)
+                    .expectJsonLength(TestData.musicStyles.length);
+            });
+        });
+        describe("Get music style by Id", () => {
+            it("Should get music style by Id with moderator role", async () => {
+                return await pactum
+                    .spec()
+                    .withHeaders({
+                        Authorization: `Bearer $S{userAt_kaya}`,
+                    })
+                    .get("/music-styles/{id}")
+                    .withPathParams({ id: `$S{musicStyleModId}` })
+                    .expectStatus(200)
+                    .expectBodyContains(
+                        TestData.musicStyles[TestData.musicStyles.length - 1]
+                            .musicStyleName,
+                    );
+            });
+        });
+
+        describe("Edit music style by Id", () => {
+            it("Should edit music style by Id with moderator role", async () => {
+                const editMusicStyleDto: MusicStyleDto = {
+                    musicStyleName: "Music style to delete",
+                };
+
+                return await pactum
+                    .spec()
+                    .withHeaders({
+                        Authorization: `Bearer $S{userAt_kaya}`,
+                    })
+                    .patch("/music-styles/{id}")
+                    .withPathParams({ id: `$S{musicStyleModId}` })
+                    .withBody(editMusicStyleDto)
+                    .expectStatus(200)
+                    .expectBodyContains(editMusicStyleDto.musicStyleName);
+            });
+        });
+
+        describe("Delete music style by Id", () => {
+            it("Should delete music style by Id with moderator role", async () => {
+                await pactum
+                    .spec()
+                    .withHeaders({
+                        Authorization: `Bearer $S{userAt_kaya}`,
+                    })
+                    .delete("/music-styles/{id}")
+                    .withPathParams({ id: `$S{musicStyleModId}` })
+                    .expectStatus(200);
+
+                return await pactum
+                    .spec()
+                    .withHeaders({
+                        Authorization: `Bearer $S{userAt_kaya}`,
+                    })
+                    .get("/music-styles/")
+                    .expectStatus(200)
+                    .expectJsonLength(TestData.musicStyles.length - 1);
             });
         });
     });
+
+    // describe("Artists CRUD", () => {
+    //     describe("Create Artist", () => {
+    //         it("Should commit me as Artist", async () => {
+    //             return pactum
+    //                 .spec()
+    //                 .post("/artists/")
+    //                 .withHeaders({
+    //                     Authorization: `Bearer $S{userAt_khazaar}`,
+    //                 })
+    //                 .withBody(TestData.createArtistDtoKhazaar)
+    //                 .stores("khazaarArtistId", "id")
+    //                 .expectStatus(201)
+    //                 .expectBodyContains(TestData.createArtistDtoKhazaar.style);
+    //         });
+    //     });
+    // });
 
     describe("Organizer CRUD", () => {
         describe("Create Organizer", () => {

@@ -16,6 +16,7 @@ import { ModeratorModule } from './moderator/moderator.module';
 import { ArtistTypeController } from './artist-type/artist-type.controller';
 import { ArtistTypeService } from './artist-type/artist-type.service';
 import { ArtistTypeModule } from './artist-type/artist-type.module';
+import { MusicStyleModule } from './music-style/music-style.module';
 
 @Module({
     imports: [
@@ -26,6 +27,7 @@ import { ArtistTypeModule } from './artist-type/artist-type.module';
         UserModule,
         ModeratorModule,
         ArtistTypeModule,
+        MusicStyleModule,
     ],
     controllers: [UserController, OrganizerController, EventController, ModeratorController, ArtistTypeController],
     providers: [UserService, OrganizerService, EventService, ModeratorService, ArtistTypeService],

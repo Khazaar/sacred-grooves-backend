@@ -1,6 +1,7 @@
 import { CreateArtistTypeDto } from "src/artist-type/artist-type.dto";
 import { CreateArtistDto } from "src/artists/artist.dto";
 import { AuthDto } from "src/auth/auth.dto";
+import { MusicStyleDto } from "src/music-style/music-style.dto";
 import { CreateOrganizerDto } from "src/organizer/organizer.dto";
 import { CreateUserDto } from "src/user/user.dto";
 
@@ -73,7 +74,35 @@ export abstract class TestData {
             artisitTypeName: "Face painter",
         },
         {
-            artisitTypeName: "Type to Edit",
+            artisitTypeName: "Type to edit",
+        },
+    ];
+
+    public static musicStyles: MusicStyleDto[] = [
+        {
+            musicStyleName: "House",
+        },
+        {
+            musicStyleName: "Techno",
+        },
+        {
+            musicStyleName: "Trance",
+        },
+        {
+            musicStyleName: "Dubstep",
+        },
+        {
+            musicStyleName: "Drum and Bass",
+        },
+
+        {
+            musicStyleName: "Bass",
+        },
+        {
+            musicStyleName: "Chill",
+        },
+        {
+            musicStyleName: "Music style to edit",
         },
     ];
 }
