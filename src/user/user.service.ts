@@ -1,11 +1,24 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { Linter } from "eslint";
 import { PrismaService } from "../prisma/prisma.service";
-import { EditUserDto } from "./dto";
+import { CreateUserDto, EditUserDto } from "./user.dto";
 
 @Injectable()
 export class UserService {
     constructor(private readonly prisma: PrismaService) {}
+
+    public async createUser(userId: number, data: CreateUserDto) {
+        const user = await this.prisma.user.update({
+            where: { id: userId },
+            data: {
+                nickName: data.nickName,
+            },
+        });
+        if (!user) {
+            throw new NotFoundException("User not found");
+        }
+        return user;
+    }
 
     public async getAllUsers() {
         const users = await this.prisma.user.findMany();
