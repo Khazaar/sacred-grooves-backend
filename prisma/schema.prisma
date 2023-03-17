@@ -28,12 +28,14 @@ model User {
 }
 
 model Artist {
-  id         Int     @id @default(autoincrement())
-  userId     Int     @unique
-  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  style      String
-  events     Event[]
-  isApproved Boolean @default(false)
+  id          Int          @id @default(autoincrement())
+  userId      Int          @unique
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  style       String
+  events      Event[]
+  isApproved  Boolean      @default(false)
+  artistTypes ArtistType[]
+  musicSlyles MusicStyle[]
 }
 
 model Organizer {
@@ -70,4 +72,16 @@ model Moderator {
   id     Int  @id @default(autoincrement())
   userId Int  @unique
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ArtistType {
+  id       Int    @id @default(autoincrement())
+  artistId Int    @unique
+  artist   Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+}
+
+model MusicStyle {
+  id       Int    @id @default(autoincrement())
+  artistId Int    @unique
+  artist   Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
 }
