@@ -11,19 +11,20 @@ datasource db {
 }
 
 model User {
-  id           Int        @id @default(autoincrement())
+  id           Int          @id @default(autoincrement())
   nickName     String?
   firstName    String?
   lastName     String?
   telegramName String?
-  email        String     @unique
+  email        String       @unique
   passwordHash String
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
   Artist       Artist?
   Organizer    Organizer?
   Visitor      Visitor?
   Moderator    Moderator?
+  SupportTeam  SupportTeam?
   roles        String[]
 }
 
@@ -75,13 +76,21 @@ model Moderator {
 }
 
 model ArtistType {
-  id       Int    @id @default(autoincrement())
-  artistId Int    @unique
-  artist   Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  id              Int     @id @default(autoincrement())
+  artistId        Int?    @unique
+  artist          Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  artisitTypeName String
 }
 
 model MusicStyle {
-  id       Int    @id @default(autoincrement())
-  artistId Int    @unique
-  artist   Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  id             Int    @id @default(autoincrement())
+  musicStyleName String
+  artistId       Int?    @unique
+  artist         Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
+}
+
+model SupportTeam {
+  id            Int  @id @default(autoincrement())
+  supportTeamId Int  @unique
+  user          User @relation(fields: [supportTeamId], references: [id], onDelete: Cascade)
 }

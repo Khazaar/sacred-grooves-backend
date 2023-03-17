@@ -11,48 +11,14 @@ import { CreateEventDto } from "src/event/event.dto";
 import { CreateUserDto } from "src/user/user.dto";
 import { Role } from "../src/auth/enums/roles.enum";
 import { GrantModeratorDto } from "src/moderator/moderator.dto";
+import { TestData } from "./testData";
+import { inspect } from "util";
+import { CreateArtistTypeDto } from "src/artist-type/artist-type.dto";
+import { MusicStyleDto } from "src/music-style/music-style.dto";
 
 describe("App e2e test", () => {
     let app: INestApplication;
-    let prisma: PrismaService;
-    // Artist
-    const authDtoKhazaar: AuthDto = {
-        email: "khazaar@gmail.com",
-        password: "asdfasdfasdg345",
-    };
-    const createUserDtoKhazaar: CreateUserDto = {
-        nickName: "Khazaar",
-    };
-    const createArtistDtoKhazaar: CreateArtistDto = {
-        style: "House",
-    };
-    // Organizer
-    const authDtoMari: AuthDto = {
-        email: "mari@gmail.com",
-        password: "sdfasdasyeer",
-    };
-    const createUserDtoMari: CreateUserDto = {
-        nickName: "Marii",
-    };
-    const createOrganizerDtoMari: CreateOrganizerDto = {
-        mainLocation: "Siberia",
-    };
-    // Moderator
-    const authDtoKaya: AuthDto = {
-        email: "kaya@gmail.com",
-        password: "sdfasdasyeer",
-    };
-    const createUserDtoKaya: CreateUserDto = {
-        nickName: "Kaya the bird",
-    };
-    // Student
-    const authDtoPeter: AuthDto = {
-        email: "peter@gmail.com",
-        password: "56453yrte434u5786yrt",
-    };
-    const createUserDtoPeter: CreateUserDto = {
-        nickName: "Peter Power",
-    };
+    let prismaService: PrismaService;
 
     beforeAll(async () => {
         const moduleRef = await Test.createTestingModule({
@@ -62,21 +28,23 @@ describe("App e2e test", () => {
         app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
         await app.init();
         await app.listen(3333);
-        prisma = app.get(PrismaService);
-        prisma.cleadDb();
+        prismaService = app.get(PrismaService);
+        await prismaService.cleadDb();
         pactum.request.setBaseUrl("http://localhost:3333");
     });
     afterAll(async () => {
         await app.close();
+        await prismaService.$disconnect();
     });
+    beforeEach(() => {});
     describe("Auth", () => {
         describe("SignUp / create User", () => {
             it("Empty email exeption", async () => {
-                return pactum
+                return await pactum
                     .spec()
                     .post("/auth/signup")
                     .withBody({
-                        ...authDtoKhazaar,
+                        ...TestData.authDtoKhazaar,
                         email: "",
                     })
                     .expectStatus(400);
@@ -85,27 +53,27 @@ describe("App e2e test", () => {
                 await pactum
                     .spec()
                     .post("/auth/signup")
-                    .withBody(authDtoKhazaar)
+                    .withBody(TestData.authDtoKhazaar)
                     .expectStatus(201)
                     .stores("khazaarUserId", "id");
 
                 await pactum
                     .spec()
                     .post("/auth/signup")
-                    .withBody(authDtoMari)
+                    .withBody(TestData.authDtoMari)
                     .stores("mariUserId", "id")
                     .expectStatus(201);
 
                 await pactum
                     .spec()
                     .post("/auth/signup")
-                    .withBody(authDtoKaya)
+                    .withBody(TestData.authDtoKaya)
                     .stores("kayaUserId", "[3].id")
                     .expectStatus(201);
                 return pactum
                     .spec()
                     .post("/auth/signup")
-                    .withBody(authDtoPeter)
+                    .withBody(TestData.authDtoPeter)
                     .stores("peterUserId", "id")
                     .expectStatus(201);
             });
@@ -115,25 +83,25 @@ describe("App e2e test", () => {
                 await pactum
                     .spec()
                     .post("/auth/signin")
-                    .withBody(authDtoKhazaar)
+                    .withBody(TestData.authDtoKhazaar)
                     .expectStatus(200)
                     .stores("userAt_khazaar", "access_token");
                 await pactum
                     .spec()
                     .post("/auth/signin")
-                    .withBody(authDtoMari)
+                    .withBody(TestData.authDtoMari)
                     .expectStatus(200)
                     .stores("userAt_mari", "access_token");
                 await pactum
                     .spec()
                     .post("/auth/signin")
-                    .withBody(authDtoKaya)
+                    .withBody(TestData.authDtoKaya)
                     .expectStatus(200)
                     .stores("userAt_kaya", "access_token");
                 return pactum
                     .spec()
                     .post("/auth/signin")
-                    .withBody(authDtoPeter)
+                    .withBody(TestData.authDtoPeter)
                     .expectStatus(200)
                     .stores("userAt_peter", "access_token");
             });
@@ -142,46 +110,46 @@ describe("App e2e test", () => {
     describe("Users CRUD", () => {
         describe("Create users", () => {
             it("Should update user khazaar", async () => {
-                return pactum
+                return await pactum
                     .spec()
                     .post("/users/")
                     .withHeaders({ Authorization: `Bearer $S{userAt_khazaar}` })
-                    .withBody(createUserDtoKhazaar)
+                    .withBody(TestData.createUserDtoKhazaar)
                     .expectStatus(201)
-                    .expectBodyContains(createUserDtoKhazaar.nickName);
+                    .expectBodyContains(TestData.createUserDtoKhazaar.nickName);
             });
             it("Should create user mari", async () => {
-                return pactum
+                return await pactum
                     .spec()
                     .post("/users/")
                     .withHeaders({ Authorization: `Bearer $S{userAt_mari}` })
-                    .withBody(createUserDtoMari)
+                    .withBody(TestData.createUserDtoMari)
                     .expectStatus(201)
-                    .expectBodyContains(createUserDtoMari.nickName);
+                    .expectBodyContains(TestData.createUserDtoMari.nickName);
             });
             it("Should create user peter", async () => {
-                return pactum
+                return await pactum
                     .spec()
                     .post("/users/")
                     .withHeaders({ Authorization: `Bearer $S{userAt_peter}` })
-                    .withBody(createUserDtoPeter)
+                    .withBody(TestData.createUserDtoPeter)
                     .expectStatus(201)
-                    .expectBodyContains(createUserDtoPeter.nickName);
+                    .expectBodyContains(TestData.createUserDtoPeter.nickName);
             });
             it("Should create user kaya", async () => {
-                return pactum
+                return await pactum
                     .spec()
                     .post("/users/")
                     .withHeaders({ Authorization: `Bearer $S{userAt_kaya}` })
-                    .withBody(createUserDtoKaya)
+                    .withBody(TestData.createUserDtoKaya)
                     .expectStatus(201)
-                    .expectBodyContains(createUserDtoKaya.nickName);
+                    .expectBodyContains(TestData.createUserDtoKaya.nickName);
             });
         });
 
         describe("Get Me", () => {
             it("Should get current user", async () => {
-                return pactum
+                return await pactum
                     .spec()
                     .get("/users/me")
                     .withHeaders({ Authorization: `Bearer $S{userAt_khazaar}` })
@@ -201,7 +169,7 @@ describe("App e2e test", () => {
                     .patch("/users/me")
                     .expectStatus(200);
 
-                return pactum
+                return await pactum
                     .spec()
                     .get("/users/me")
                     .withHeaders({ Authorization: `Bearer $S{userAt_khazaar}` })
@@ -215,9 +183,9 @@ describe("App e2e test", () => {
         describe("Grant moderator role", () => {
             it("Should grant modeator role by user email", async () => {
                 const grantModeratorDto: GrantModeratorDto = {
-                    userEmail: authDtoKaya.email,
+                    userEmail: TestData.authDtoKaya.email,
                 };
-                return pactum
+                return await pactum
                     .spec()
                     .post("/moderators/grant")
                     .withBody(grantModeratorDto)
@@ -228,19 +196,19 @@ describe("App e2e test", () => {
 
         describe("Get all users", () => {
             it("Should get all users with Moderator role", async () => {
-                return pactum
+                return await pactum
                     .spec()
                     .withHeaders({ Authorization: `Bearer $S{userAt_kaya}` })
                     .get("/users/")
                     .expectStatus(200)
-                    .expectBodyContains(authDtoKhazaar.email)
-                    .expectBodyContains(authDtoMari.email)
-                    .expectBodyContains(authDtoKaya.email)
-                    .expectBodyContains(authDtoPeter.email)
+                    .expectBodyContains(TestData.authDtoKhazaar.email)
+                    .expectBodyContains(TestData.authDtoMari.email)
+                    .expectBodyContains(TestData.authDtoKaya.email)
+                    .expectBodyContains(TestData.authDtoPeter.email)
                     .expectJsonLength(4);
             });
             it("Should not all users without Moderator role", async () => {
-                return pactum
+                return await pactum
                     .spec()
                     .withHeaders({ Authorization: `Bearer $S{userAt_khazaar}` })
                     .get("/users/")
@@ -250,33 +218,231 @@ describe("App e2e test", () => {
 
         describe("Get user by Id", () => {
             it("Should get user by Id with Moderator role", async () => {
-                return pactum
+                return await pactum
                     .spec()
                     .withHeaders({ Authorization: `Bearer $S{userAt_kaya}` })
                     .withPathParams({ id: `$S{khazaarUserId}` })
                     .get("/users/{id}")
                     .expectStatus(200)
-                    .expectBodyContains(createUserDtoKhazaar.nickName);
+                    .expectBodyContains(TestData.createUserDtoKhazaar.nickName);
             });
         });
     });
 
-    describe("Artists CRUD", () => {
-        describe("Create Artist", () => {
-            it("Should commit me as Artist", async () => {
-                return pactum
+    describe("Artist types CRUD", () => {
+        describe("Create Artist type", () => {
+            it("Should create artist type with moderator role", async () => {
+                for (const artistType of TestData.artistTypes) {
+                    await pactum
+                        .spec()
+                        .post("/artist-types/")
+                        .withHeaders({
+                            Authorization: `Bearer $S{userAt_kaya}`,
+                        })
+                        .withBody(artistType)
+                        .expectStatus(201)
+                        .expectBodyContains(artistType.artisitTypeName)
+                        .stores("artistTypeModId", "id");
+                }
+            });
+            it("Should not create artist type without moderator role", async () => {
+                return await pactum
                     .spec()
-                    .post("/artists/")
+                    .post("/artist-types/")
                     .withHeaders({
                         Authorization: `Bearer $S{userAt_khazaar}`,
                     })
-                    .withBody(createArtistDtoKhazaar)
-                    .stores("khazaarArtistId", "id")
-                    .expectStatus(201)
-                    .expectBodyContains(createArtistDtoKhazaar.style);
+                    .withBody(TestData.artistTypes[0])
+                    .expectStatus(403);
+            });
+        });
+        describe("Get all artist types", () => {
+            it("Should get all artist types", async () => {
+                return await pactum
+                    .spec()
+                    .withHeaders({
+                        Authorization: `Bearer $S{userAt_kaya}`,
+                    })
+                    .get("/artist-types/")
+                    .expectStatus(200)
+                    .expectJsonLength(TestData.artistTypes.length);
+            });
+        });
+
+        describe("Get artist type by Id / 10", () => {
+            it("Should get artist type by Id with moderator role", async () => {
+                await await pactum
+                    .spec()
+                    .withHeaders({ Authorization: `Bearer $S{userAt_kaya}` })
+                    .withPathParams({ id: `$S{artistTypeModId}` })
+                    .get("/artist-types/{id}")
+                    .expectStatus(200)
+                    .expectBodyContains(
+                        TestData.artistTypes[TestData.artistTypes.length - 1]
+                            .artisitTypeName,
+                    );
+            });
+        });
+
+        describe("Edit artist type by Id / 10", () => {
+            it("Should edit artist type by Id with moderator role", async () => {
+                const editArtistTypeDto: CreateArtistTypeDto = {
+                    artisitTypeName: "Type to Delete",
+                };
+                return await pactum
+                    .spec()
+                    .withHeaders({ Authorization: `Bearer $S{userAt_kaya}` })
+                    .withBody(editArtistTypeDto)
+                    .withPathParams({ id: `$S{artistTypeModId}` })
+                    .patch("/artist-types/{id}")
+
+                    .expectStatus(200)
+                    .expectBodyContains(editArtistTypeDto.artisitTypeName);
+            });
+        });
+
+        describe("Delete artist type by Id / 10", () => {
+            it("Should delete artist type by Id with moderator role", async () => {
+                await pactum
+                    .spec()
+                    .withHeaders({ Authorization: `Bearer $S{userAt_kaya}` })
+                    .delete("/artist-types/{id}")
+                    .withPathParams({ id: `$S{artistTypeModId}` })
+                    .expectStatus(200);
+
+                return await pactum
+                    .spec()
+                    .withHeaders({
+                        Authorization: `Bearer $S{userAt_kaya}`,
+                    })
+                    .get("/artist-types/")
+                    .expectStatus(200)
+                    .expectJsonLength(TestData.artistTypes.length - 1);
+            });
+            it("Should not delete artist type by Id without moderator role", async () => {
+                return await pactum
+                    .spec()
+                    .withHeaders({ Authorization: `Bearer $S{userAt_khazaar}` })
+                    .delete("/artist-types/{id}")
+                    .withPathParams({ id: `$S{artistTypeModId}` })
+                    .expectStatus(403);
             });
         });
     });
+
+    describe("Music style CRUD", () => {
+        describe("Create Music style", () => {
+            it("Should create music style with moderator role", async () => {
+                for (const musicStyle of TestData.musicStyles) {
+                    await pactum
+                        .spec()
+                        .withHeaders({
+                            Authorization: `Bearer $S{userAt_kaya}`,
+                        })
+                        .post("/music-styles/")
+                        .withBody(musicStyle)
+                        .expectStatus(201)
+                        .stores("musicStyleModId", "id")
+                        .expectBodyContains(musicStyle.musicStyleName);
+                }
+            });
+            it("Should not create music style without moderator role", async () => {
+                return await pactum
+
+                    .spec()
+                    .post("/music-styles/")
+                    .withHeaders({ Authorization: `Bearer $S{userAt_khazaar}` })
+                    .withBody(TestData.musicStyles[0])
+                    .expectStatus(403);
+            });
+        });
+        describe("Get all music styles", () => {
+            it("Should get all music styles with moderator role", async () => {
+                return await pactum
+                    .spec()
+                    .withHeaders({
+                        Authorization: `Bearer $S{userAt_kaya}`,
+                    })
+                    .get("/music-styles/")
+                    .expectStatus(200)
+                    .expectJsonLength(TestData.musicStyles.length);
+            });
+        });
+        describe("Get music style by Id", () => {
+            it("Should get music style by Id with moderator role", async () => {
+                return await pactum
+                    .spec()
+                    .withHeaders({
+                        Authorization: `Bearer $S{userAt_kaya}`,
+                    })
+                    .get("/music-styles/{id}")
+                    .withPathParams({ id: `$S{musicStyleModId}` })
+                    .expectStatus(200)
+                    .expectBodyContains(
+                        TestData.musicStyles[TestData.musicStyles.length - 1]
+                            .musicStyleName,
+                    );
+            });
+        });
+
+        describe("Edit music style by Id", () => {
+            it("Should edit music style by Id with moderator role", async () => {
+                const editMusicStyleDto: MusicStyleDto = {
+                    musicStyleName: "Music style to delete",
+                };
+
+                return await pactum
+                    .spec()
+                    .withHeaders({
+                        Authorization: `Bearer $S{userAt_kaya}`,
+                    })
+                    .patch("/music-styles/{id}")
+                    .withPathParams({ id: `$S{musicStyleModId}` })
+                    .withBody(editMusicStyleDto)
+                    .expectStatus(200)
+                    .expectBodyContains(editMusicStyleDto.musicStyleName);
+            });
+        });
+
+        describe("Delete music style by Id", () => {
+            it("Should delete music style by Id with moderator role", async () => {
+                await pactum
+                    .spec()
+                    .withHeaders({
+                        Authorization: `Bearer $S{userAt_kaya}`,
+                    })
+                    .delete("/music-styles/{id}")
+                    .withPathParams({ id: `$S{musicStyleModId}` })
+                    .expectStatus(200);
+
+                return await pactum
+                    .spec()
+                    .withHeaders({
+                        Authorization: `Bearer $S{userAt_kaya}`,
+                    })
+                    .get("/music-styles/")
+                    .expectStatus(200)
+                    .expectJsonLength(TestData.musicStyles.length - 1);
+            });
+        });
+    });
+
+    // describe("Artists CRUD", () => {
+    //     describe("Create Artist", () => {
+    //         it("Should commit me as Artist", async () => {
+    //             return pactum
+    //                 .spec()
+    //                 .post("/artists/")
+    //                 .withHeaders({
+    //                     Authorization: `Bearer $S{userAt_khazaar}`,
+    //                 })
+    //                 .withBody(TestData.createArtistDtoKhazaar)
+    //                 .stores("khazaarArtistId", "id")
+    //                 .expectStatus(201)
+    //                 .expectBodyContains(TestData.createArtistDtoKhazaar.style);
+    //         });
+    //     });
+    // });
 
     describe("Organizer CRUD", () => {
         describe("Create Organizer", () => {
@@ -288,10 +454,10 @@ describe("App e2e test", () => {
                     .withHeaders({
                         Authorization: `Bearer $S{userAt_mari}`,
                     })
-                    .withBody(createOrganizerDtoMari)
+                    .withBody(TestData.createOrganizerDtoMari)
                     .stores("mariOrganizerId", "id")
                     .expectStatus(201)
-                    .expectBodyContains(createUserDtoMari.nickName);
+                    .expectBodyContains(TestData.createUserDtoMari.nickName);
             });
         });
     });
