@@ -76,16 +76,17 @@ model Moderator {
 }
 
 model ArtistType {
-  id       Int    @id @default(autoincrement())
-  artistId Int?    @unique
-  artist   Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  id              Int     @id @default(autoincrement())
+  artistId        Int?    @unique
+  artist          Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
   artisitTypeName String
 }
 
 model MusicStyle {
-  id       Int    @id @default(autoincrement())
-  artistId Int    @unique
-  artist   Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  id             Int    @id @default(autoincrement())
+  musicStyleName String
+  artistId       Int?    @unique
+  artist         Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
 }
 
 model SupportTeam {
