@@ -72,5 +72,8 @@ export abstract class TestData {
         {
             artisitTypeName: "Face painter",
         },
+        {
+            artisitTypeName: "Type to Edit",
+        },
     ];
 }
