@@ -13,6 +13,10 @@ import { EventService } from "./event/event.service";
 import { ModeratorService } from './moderator/moderator.service';
 import { ModeratorController } from './moderator/moderator.controller';
 import { ModeratorModule } from './moderator/moderator.module';
+import { ArtistTypeController } from './artist-type/artist-type.controller';
+import { ArtistTypeService } from './artist-type/artist-type.service';
+import { ArtistTypeModule } from './artist-type/artist-type.module';
+import { MusicStyleModule } from './music-style/music-style.module';
 
 @Module({
     imports: [
@@ -22,8 +26,10 @@ import { ModeratorModule } from './moderator/moderator.module';
         PrismaModule,
         UserModule,
         ModeratorModule,
+        ArtistTypeModule,
+        MusicStyleModule,
     ],
-    controllers: [UserController, OrganizerController, EventController, ModeratorController],
-    providers: [UserService, OrganizerService, EventService, ModeratorService],
+    controllers: [UserController, OrganizerController, EventController, ModeratorController, ArtistTypeController],
+    providers: [UserService, OrganizerService, EventService, ModeratorService, ArtistTypeService],
 })
 export class AppModule {}
