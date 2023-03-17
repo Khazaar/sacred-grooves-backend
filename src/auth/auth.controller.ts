@@ -6,11 +6,11 @@ export class AuthController {
     constructor(private authService: AuthService) {}
     @Post("signup")
     public async signup(@Body() dto: AuthDto) {
-        await this.authService.signup(dto);
+        return await this.authService.signup(dto);
     }
     @Post("signin")
     @HttpCode(200)
-    public signin(@Body() dto: AuthDto) {
-        return this.authService.signin(dto);
+    public async signin(@Body() dto: AuthDto) {
+        return await this.authService.signin(dto);
     }
 }
