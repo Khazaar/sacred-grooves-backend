@@ -12,10 +12,12 @@ import { CreateUserDto } from "src/user/user.dto";
 import { Role } from "../src/auth/enums/roles.enum";
 import { GrantModeratorDto } from "src/moderator/moderator.dto";
 import { TestData } from "./testData";
+import { inspect } from "util";
+import { CreateArtistTypeDto } from "src/artist-type/artist-type.dto";
 
 describe("App e2e test", () => {
     let app: INestApplication;
-    let prisma: PrismaService;
+    let prismaService: PrismaService;
 
     beforeAll(async () => {
         const moduleRef = await Test.createTestingModule({
@@ -25,8 +27,8 @@ describe("App e2e test", () => {
         app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
         await app.init();
         await app.listen(3333);
-        prisma = app.get(PrismaService);
-        prisma.cleadDb();
+        prismaService = app.get(PrismaService);
+        prismaService.cleadDb();
         pactum.request.setBaseUrl("http://localhost:3333");
     });
     afterAll(async () => {
@@ -237,10 +239,11 @@ describe("App e2e test", () => {
                         })
                         .withBody(artistType)
                         .expectStatus(201)
-                        .expectBodyContains(artistType.artisitTypeName);
+                        .expectBodyContains(artistType.artisitTypeName)
+                        .stores("artistTypeModId", "id");
                 });
             });
-            it("Should not create artist type withput moderator role", async () => {
+            it("Should not create artist type without moderator role", async () => {
                 return pactum
                     .spec()
                     .post("/artist-types/")
@@ -248,6 +251,77 @@ describe("App e2e test", () => {
                         Authorization: `Bearer $S{userAt_khazaar}`,
                     })
                     .withBody(TestData.artistTypes[0])
+                    .expectStatus(403);
+            });
+        });
+        describe("Get all artist types", () => {
+            it("Should get all artist types", async () => {
+                return pactum
+                    .spec()
+                    .withHeaders({
+                        Authorization: `Bearer $S{userAt_kaya}`,
+                    })
+                    .get("/artist-types/")
+                    .expectStatus(200)
+                    .expectJsonLength(10);
+            });
+        });
+
+        describe("Get artist type by Id / 10", () => {
+            it("Should get artist type by Id with moderator role", async () => {
+                await pactum
+                    .spec()
+                    .withHeaders({ Authorization: `Bearer $S{userAt_kaya}` })
+                    .withPathParams({ id: `$S{artistTypeModId}` })
+                    .get("/artist-types/{id}")
+                    .expectStatus(200)
+                    .expectBodyContains(
+                        TestData.artistTypes[9].artisitTypeName,
+                    );
+            });
+        });
+
+        describe("Edit artist type by Id / 10", () => {
+            it("Should edit artist type by Id with moderator role", async () => {
+                const editArtistTypeDto: CreateArtistTypeDto = {
+                    artisitTypeName: "Type to Delete",
+                };
+                await pactum
+                    .spec()
+                    .withHeaders({ Authorization: `Bearer $S{userAt_kaya}` })
+                    .withBody(editArtistTypeDto)
+                    .withPathParams({ id: `$S{artistTypeModId}` })
+                    .patch("/artist-types/{id}")
+
+                    .expectStatus(200)
+                    .expectBodyContains(editArtistTypeDto.artisitTypeName);
+            });
+        });
+
+        describe("Delete artist type by Id / 10", () => {
+            it("Should delete artist type by Id with moderator role", async () => {
+                await pactum
+                    .spec()
+                    .withHeaders({ Authorization: `Bearer $S{userAt_kaya}` })
+                    .delete("/artist-types/{id}")
+                    .withPathParams({ id: `$S{artistTypeModId}` })
+                    .expectStatus(200);
+
+                return pactum
+                    .spec()
+                    .withHeaders({
+                        Authorization: `Bearer $S{userAt_kaya}`,
+                    })
+                    .get("/artist-types/")
+                    .expectStatus(200)
+                    .expectJsonLength(9);
+            });
+            it("Should not delete artist type by Id without moderator role", async () => {
+                return pactum
+                    .spec()
+                    .withHeaders({ Authorization: `Bearer $S{userAt_khazaar}` })
+                    .delete("/artist-types/{id}")
+                    .withPathParams({ id: `$S{artistTypeModId}` })
                     .expectStatus(403);
             });
         });
