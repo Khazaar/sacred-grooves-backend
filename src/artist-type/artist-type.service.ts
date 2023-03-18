@@ -1,10 +1,20 @@
-import { Injectable, InternalServerErrorException } from "@nestjs/common";
+import {
+    Inject,
+    Injectable,
+    InternalServerErrorException,
+    LoggerService,
+} from "@nestjs/common";
+import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateArtistTypeDto } from "./artist-type.dto";
 
 @Injectable()
 export class ArtistTypeService {
-    constructor(private readonly prismaService: PrismaService) {}
+    constructor(
+        private readonly prismaService: PrismaService,
+        @Inject(WINSTON_MODULE_NEST_PROVIDER)
+        private readonly logger: LoggerService,
+    ) {}
     public async createArtistType(dto: CreateArtistTypeDto) {
         try {
             const artistType = await this.prismaService.artistType.create({
@@ -41,9 +51,14 @@ export class ArtistTypeService {
     }
 
     public async deleteArtistTypeById(artistTypeId: number) {
-        const artistType = await this.prismaService.artistType.delete({
-            where: { id: artistTypeId },
-        });
-        return artistType;
+        try {
+            const artistType = await this.prismaService.artistType.delete({
+                where: { id: artistTypeId },
+            });
+            return artistType;
+        } catch (error) {
+            this.logger.error(error);
+            throw new InternalServerErrorException(error);
+        }
     }
 }
