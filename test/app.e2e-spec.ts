@@ -1,18 +1,13 @@
-import { AuthDto } from "../src/auth/auth.dto";
-import { INestApplication, ValidationPipe } from "@nestjs/common";
+import { INestApplication, Logger, ValidationPipe } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import { PrismaService } from "../src/prisma/prisma.service";
 import { AppModule } from "../src/app.module";
 import * as pactum from "pactum";
 import { EditUserDto } from "../src/user/user.dto";
-import { CreateArtistDto } from "src/artists/artist.dto";
-import { CreateOrganizerDto } from "src/organizer/organizer.dto";
 import { CreateEventDto } from "src/event/event.dto";
-import { CreateUserDto } from "src/user/user.dto";
-import { Role } from "../src/auth/enums/roles.enum";
 import { GrantModeratorDto } from "src/moderator/moderator.dto";
 import { TestData } from "./testData";
-import { inspect } from "util";
+
 import { CreateArtistTypeDto } from "src/artist-type/artist-type.dto";
 import { MusicStyleDto } from "src/music-style/music-style.dto";
 
@@ -318,6 +313,14 @@ describe("App e2e test", () => {
                     .get("/artist-types/")
                     .expectStatus(200)
                     .expectJsonLength(TestData.artistTypes.length - 1);
+            });
+            it("Should return error trying to delete artist type by wrong Id / 99999999", async () => {
+                return await pactum
+                    .spec()
+                    .withHeaders({ Authorization: `Bearer $S{userAt_kaya}` })
+                    .delete("/artist-types/{id}")
+                    .withPathParams({ id: `99999999` })
+                    .expectStatus(500);
             });
             it("Should not delete artist type by Id without moderator role", async () => {
                 return await pactum
