@@ -18,15 +18,16 @@ import { UserService } from "./user.service";
 import { RolesGuard } from "../auth/guard/roles.guard";
 import { Role } from "../auth/enums/roles.enum";
 
-@UseGuards(JwtGuard, RolesGuard)
+@UseGuards(AuthGuard("jwt"))
 @Controller("users")
 export class UserController {
     constructor(private readonly userService: UserService) {}
 
     @Post()
-    public async createUser(@Body() dto: CreateUserDto, @GetUser() user: User) {
-        return this.userService.createUser(user.id, dto);
+    public async createUser(@Body() dto: CreateUserDto) {
+        return this.userService.createUser(dto);
     }
+
     @Get()
     @Roles(Role.Moderator)
     public async getAllUsers() {

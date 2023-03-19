@@ -3,47 +3,50 @@ import { CreateArtistDto } from "src/artists/artist.dto";
 import { AuthDto } from "src/auth/auth.dto";
 import { MusicStyleDto } from "src/music-style/music-style.dto";
 import { CreateOrganizerDto } from "src/organizer/organizer.dto";
-import { CreateUserDto } from "src/user/user.dto";
+import { CreateUserDto } from "../src/user/user.dto";
+
+class CreateUserDtoTest extends CreateUserDto {
+    access_token?: string;
+    tokenKey?: string;
+}
 
 export abstract class TestData {
-    // Artist
-    public static authDtoKhazaar: AuthDto = {
-        email: "khazaar@gmail.com",
-        password: "asdfasdfasdg345",
-    };
-    public static createUserDtoKhazaar: CreateUserDto = {
+    // Users
+    public static createUserDtoKhazaar: CreateUserDtoTest = {
         nickName: "Khazaar",
+        email: "khazaar@gmail.com",
+        password: "asdfasd_fasdg345",
     };
+
+    public static createUserDtoMari: CreateUserDtoTest = {
+        email: "mari@gmail.com",
+        password: "sdfas!dasyeer2",
+        nickName: "Marii",
+    };
+
+    public static createUserDtoKaya: CreateUserDtoTest = {
+        email: "kaya@gmail.com",
+        password: "sdfas33%$dasyeer",
+        nickName: "Kaya the bird",
+    };
+
+    public static createUserDtoPeter: CreateUserDtoTest = {
+        email: "peter@gmail.com",
+        password: "5645&^%3yrte434u5786yrt",
+        nickName: "Peter Power",
+    };
+
+    // Artist
     public static createArtistDtoKhazaar: CreateArtistDto = {
         style: "House",
     };
+
     // Organizer
-    public static authDtoMari: AuthDto = {
-        email: "mari@gmail.com",
-        password: "sdfasdasyeer",
-    };
-    public static createUserDtoMari: CreateUserDto = {
-        nickName: "Marii",
-    };
     public static createOrganizerDtoMari: CreateOrganizerDto = {
         mainLocation: "Siberia",
     };
     // Moderator
-    public static authDtoKaya: AuthDto = {
-        email: "kaya@gmail.com",
-        password: "sdfasdasyeer",
-    };
-    public static createUserDtoKaya: CreateUserDto = {
-        nickName: "Kaya the bird",
-    };
     // Student
-    public static authDtoPeter: AuthDto = {
-        email: "peter@gmail.com",
-        password: "56453yrte434u5786yrt",
-    };
-    public static createUserDtoPeter: CreateUserDto = {
-        nickName: "Peter Power",
-    };
 
     public static artistTypes: CreateArtistTypeDto[] = [
         {

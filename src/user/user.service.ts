@@ -2,16 +2,24 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { Linter } from "eslint";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateUserDto, EditUserDto } from "./user.dto";
+import * as argon from "argon2";
 
 @Injectable()
 export class UserService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prismaService: PrismaService) {}
 
-    public async createUser(userId: number, data: CreateUserDto) {
-        const user = await this.prisma.user.update({
-            where: { id: userId },
+    public async createUser(dto: CreateUserDto) {
+        const passwordHash = await argon.hash(dto.password);
+        const user = await this.prismaService.user.create({
             data: {
-                nickName: data.nickName,
+                email: dto.email,
+                passwordHash: passwordHash,
+                nickName: dto.nickName,
+            },
+            select: {
+                id: true,
+                email: true,
+                createdAt: true,
             },
         });
         if (!user) {
@@ -21,13 +29,13 @@ export class UserService {
     }
 
     public async getAllUsers() {
-        const users = await this.prisma.user.findMany();
+        const users = await this.prismaService.user.findMany();
         users.forEach((user) => delete user.passwordHash);
         return users;
     }
 
     public async getUserById(userId: number) {
-        const user = await this.prisma.user.findFirst({
+        const user = await this.prismaService.user.findFirst({
             where: { id: userId },
         });
         if (!user) {
@@ -38,14 +46,14 @@ export class UserService {
     }
 
     public async editUser(userId: number, data: EditUserDto) {
-        let user = await this.prisma.user.findFirst({
+        let user = await this.prismaService.user.findFirst({
             where: { id: userId },
         });
         if (!user) {
             throw new NotFoundException("User not found");
         }
 
-        user = await this.prisma.user.update({
+        user = await this.prismaService.user.update({
             where: { id: userId },
             data,
         });
