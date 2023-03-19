@@ -3,6 +3,7 @@ import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
 import { passportJwtSecret } from "jwks-rsa";
 import * as dotenv from "dotenv";
+import { AccessPayload } from "./accessPayload.dto";
 
 dotenv.config();
 
@@ -24,7 +25,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         });
     }
 
-    validate(payload: unknown): unknown {
-        return payload;
+    validate(accessPayload: any): unknown {
+        //console.log("accessPayload", accessPayload);
+        return accessPayload;
     }
 }
