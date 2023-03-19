@@ -11,9 +11,9 @@ import {
 } from "@nestjs/common";
 import { CreateArtistDto } from "./artist.dto";
 import { User } from "@prisma/client";
-import { JwtGuard } from "../auth/guard";
+import { AuthGuard } from "@nestjs/passport";
 
-@UseGuards(JwtGuard)
+@UseGuards(AuthGuard("jwt"))
 @Controller("artists")
 export class ArtistsController {
     constructor(private readonly artistsService: ArtistsService) {}
