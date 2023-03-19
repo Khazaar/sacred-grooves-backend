@@ -17,19 +17,26 @@ import { User } from "@prisma/client";
 import { UserService } from "./user.service";
 import { RolesGuard } from "../auth/guard/roles.guard";
 import { Role } from "../auth/enums/roles.enum";
+import { GetAccessPayload } from "../authz/getAccessPayloadDecorator";
+import { AccessPayload } from "../authz/accessPayload.dto";
+import { Permissions } from "../authz/permissions.decorator";
+import { PermissionsGuard } from "../authz/permissions.guard";
 
-@UseGuards(AuthGuard("jwt"))
+@UseGuards(AuthGuard("jwt"), PermissionsGuard)
 @Controller("users")
 export class UserController {
     constructor(private readonly userService: UserService) {}
 
     @Post()
-    public async createUser(@Body() dto: CreateUserDto) {
-        return this.userService.createUser(dto);
+    public async createUser(
+        @Body() dto: CreateUserDto,
+        @GetAccessPayload() accessPayload: AccessPayload,
+    ) {
+        return this.userService.createUser(dto, accessPayload);
     }
 
     @Get()
-    @Roles(Role.Moderator)
+    @Permissions("read:users")
     public async getAllUsers() {
         return this.userService.getAllUsers();
     }

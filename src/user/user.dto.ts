@@ -1,6 +1,10 @@
 import { ArrayMinSize, IsArray, IsNotEmpty, IsOptional } from "class-validator";
 
 export class CreateUserDto {
+    @IsNotEmpty()
+    password: string;
+    @IsNotEmpty()
+    email: string;
     @IsOptional()
     nickName?: string;
     @IsOptional()
@@ -9,10 +13,6 @@ export class CreateUserDto {
     lastName?: string;
     @IsOptional()
     telegramName?: string;
-    @IsNotEmpty()
-    password: string;
-    @IsNotEmpty()
-    email: string;
 }
 
 export class EditUserDto {

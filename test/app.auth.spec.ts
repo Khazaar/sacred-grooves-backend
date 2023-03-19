@@ -17,6 +17,12 @@ describe("App auth", () => {
     let app: INestApplication;
     let prismaService: PrismaService;
     const localURL = "http://localhost:3333/";
+    const users = [
+        TestData.createUserDtoKhazaar,
+        //TestData.createUserDtoMari,
+        TestData.createUserDtoKaya,
+        //TestData.createUserDtoPeter,
+    ];
 
     beforeAll(async () => {
         const moduleRef = await Test.createTestingModule({
@@ -37,12 +43,6 @@ describe("App auth", () => {
     beforeEach(() => {});
     describe("Auth", () => {
         describe("SignIn / get auth token", () => {
-            const users = [
-                //TestData.createUserDtoKhazaar,
-                //TestData.createUserDtoMari,
-                TestData.createUserDtoKaya,
-                //TestData.createUserDtoPeter,
-            ];
             it("Should get tokens from Auth0", async () => {
                 for (const usr of users) {
                     usr.tokenKey =
@@ -61,13 +61,12 @@ describe("App auth", () => {
                         })
                         .expectStatus(200)
                         .stores(usr.tokenKey, "access_token");
-                    console.log(pactum.parse("$S{" + usr.tokenKey + "}"));
                 }
             });
-            it("Should create user in DB", async () => {
+        });
+        describe("Users CRUD", () => {
+            it("Should create users in DB", async () => {
                 for (const usr of users) {
-                    const store_name = "userAt" + +usr.email;
-                    const auth = `Bearer $S{userAt_kaya@gmail.com}`;
                     await pactum
                         .spec()
                         .post(localURL + "users")
@@ -77,6 +76,34 @@ describe("App auth", () => {
                         })
                         .expectStatus(201);
                 }
+            });
+
+            it("Should get all users from DB with read:users permissions", async () => {
+                return await pactum
+                    .spec()
+                    .get(localURL + "users")
+
+                    .withHeaders({
+                        Authorization:
+                            "Bearer $S{" +
+                            TestData.createUserDtoKaya.tokenKey +
+                            "}",
+                    })
+                    .expectStatus(200);
+            });
+            it("Should not get all users from DB without read:users permissions", async () => {
+                return await pactum
+                    .spec()
+                    .get(localURL + "users")
+
+                    .withHeaders({
+                        Authorization:
+                            "Bearer $S{" +
+                            TestData.createUserDtoKhazaar.tokenKey +
+                            "}",
+                    })
+                    .expectStatus(403)
+                    .inspect();
             });
         });
     });
