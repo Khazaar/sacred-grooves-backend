@@ -1,26 +1,12 @@
 import { CreateUserDto, EditUserDto } from "./user.dto";
-import { JwtGuard } from "./../auth/guard";
-import {
-    Body,
-    Controller,
-    Get,
-    Param,
-    ParseIntPipe,
-    Patch,
-    Post,
-    Req,
-    UseGuards,
-} from "@nestjs/common";
+import { Body, Controller, Get, Patch, Post, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
-import { GetUser, Roles } from "../auth/decorator";
-import { User } from "@prisma/client";
 import { UserService } from "./user.service";
-import { RolesGuard } from "../auth/guard/roles.guard";
-import { Role } from "../auth/enums/roles.enum";
 import { GetAccessPayload } from "../authz/getAccessPayloadDecorator";
 import { AccessPayload } from "../authz/accessPayload.dto";
 import { Permissions } from "../authz/permissions.decorator";
 import { PermissionsGuard } from "../authz/permissions.guard";
+import { PermissionTypes } from "../authz/permissions.enum";
 
 @UseGuards(AuthGuard("jwt"), PermissionsGuard)
 @Controller("users")
@@ -36,7 +22,7 @@ export class UserController {
     }
 
     @Get()
-    @Permissions("read:users")
+    @Permissions(PermissionTypes.readUsers)
     public async getAllUsers() {
         return this.userService.getAllUsers();
     }
@@ -54,7 +40,7 @@ export class UserController {
     }
 
     @Get("email")
-    @Permissions("read:users")
+    @Permissions(PermissionTypes.readUsers)
     public async getUserByEmail(@Body("email") email: string) {
         return await this.userService.getUserByEmail(email);
     }

@@ -162,5 +162,138 @@ describe("App auth", () => {
                     .expectBodyContains(TestData.createUserDtoKhazaar.nickName);
             });
         });
+
+        describe("Artist types CRUD", () => {
+            it("Should create artist type with cud:artistTypes permissions", async () => {
+                for (const artistType of TestData.artistTypes) {
+                    await pactum
+                        .spec()
+                        .post("artist-types")
+                        .withHeaders({
+                            Authorization:
+                                "Bearer $S{" +
+                                TestData.createUserDtoKaya.tokenKey +
+                                "}",
+                        })
+                        .withBody(artistType)
+                        .expectStatus(201)
+                        .expectBodyContains(artistType.artisitTypeName)
+                        .stores("artistTypeModId", "id");
+                }
+            });
+            it("Should not create artist type without cud:artistTypes permissions", async () => {
+                return await pactum
+                    .spec()
+                    .post("artist-types")
+                    .withHeaders({
+                        Authorization:
+                            "Bearer $S{" +
+                            TestData.createUserDtoKhazaar.tokenKey +
+                            "}",
+                    })
+                    .withBody(TestData.artistTypes[0])
+                    .expectStatus(403);
+            });
+
+            it("Should get all artist types", async () => {
+                return await pactum
+                    .spec()
+                    .withHeaders({
+                        Authorization:
+                            "Bearer $S{" +
+                            TestData.createUserDtoKhazaar.tokenKey +
+                            "}",
+                    })
+                    .get("artist-types/")
+                    .expectStatus(200)
+                    .expectJsonLength(TestData.artistTypes.length);
+            });
+
+            it("Should get artist type by Id ", async () => {
+                await await pactum
+                    .spec()
+                    .withHeaders({
+                        Authorization:
+                            "Bearer $S{" +
+                            TestData.createUserDtoKhazaar.tokenKey +
+                            "}",
+                    })
+                    .withPathParams({ id: `$S{artistTypeModId}` })
+                    .get("artist-types/{id}")
+                    .expectStatus(200)
+                    .expectBodyContains(
+                        TestData.artistTypes[TestData.artistTypes.length - 1]
+                            .artisitTypeName,
+                    );
+            });
+
+            it("Should edit artist type by Id with cud:artistTypes permissions", async () => {
+                const editArtistTypeDto: CreateArtistTypeDto = {
+                    artisitTypeName: "Type to Delete",
+                };
+                return await pactum
+                    .spec()
+                    .withHeaders({
+                        Authorization:
+                            "Bearer $S{" +
+                            TestData.createUserDtoKaya.tokenKey +
+                            "}",
+                    })
+                    .withBody(editArtistTypeDto)
+                    .withPathParams({ id: `$S{artistTypeModId}` })
+                    .patch("artist-types/{id}")
+                    .expectStatus(200)
+                    .expectBodyContains(editArtistTypeDto.artisitTypeName);
+            });
+
+            it("Should delete artist type by Id with cud:artistTypes permissions", async () => {
+                await pactum
+                    .spec()
+                    .withHeaders({
+                        Authorization:
+                            "Bearer $S{" +
+                            TestData.createUserDtoKaya.tokenKey +
+                            "}",
+                    })
+                    .delete("artist-types/{id}")
+                    .withPathParams({ id: `$S{artistTypeModId}` })
+                    .expectStatus(200);
+
+                return await pactum
+                    .spec()
+                    .withHeaders({
+                        Authorization:
+                            "Bearer $S{" +
+                            TestData.createUserDtoKaya.tokenKey +
+                            "}",
+                    })
+                    .get("artist-types/")
+                    .expectStatus(200)
+                    .expectJsonLength(TestData.artistTypes.length - 1);
+            });
+            it("Should return error trying to delete artist type by wrong Id / 99999999", async () => {
+                return await pactum
+                    .spec()
+                    .withHeaders({
+                        Authorization:
+                            "Bearer $S{" +
+                            TestData.createUserDtoKaya.tokenKey +
+                            "}",
+                    })
+                    .delete("artist-types/{id}")
+                    .withPathParams({ id: `99999999` })
+                    .expectStatus(500);
+            });
+            it("Should not delete artist type by Id without cud:artistTypes permissions", async () => {
+                return await pactum
+                    .spec()
+                    .withHeaders({
+                        Authorization: `Bearer $S{userAt_khazaar}`,
+                    })
+                    .delete("artist-types/{id}")
+                    .withPathParams({ id: `$S{artistTypeModId}` })
+                    .expectStatus(403);
+            });
+        });
     });
 });
