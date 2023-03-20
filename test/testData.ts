@@ -13,51 +13,6 @@ class CreateUserDtoTest {
 }
 
 export abstract class TestData {
-    // Users
-    public static createUserDtoKhazaar: CreateUserDtoTest = {
-        nickName: "Khazaar",
-        auth: {
-            email: "khazaar@gmail.com",
-            password: "asdfasd_fasdg345",
-        },
-    };
-
-    public static createUserDtoMari: CreateUserDtoTest = {
-        nickName: "Marii",
-        auth: {
-            email: "mari@gmail.com",
-            password: "sdfas!dasyeer2",
-        },
-    };
-
-    public static createUserDtoKaya: CreateUserDtoTest = {
-        nickName: "Kaya the bird",
-        auth: {
-            email: "kaya@gmail.com",
-            password: "sdfas33%$dasyeer",
-        },
-    };
-
-    public static createUserDtoPeter: CreateUserDtoTest = {
-        nickName: "Peter Power",
-        auth: {
-            email: "peter@gmail.com",
-            password: "5645&^%3yrte434u5786yrt",
-        },
-    };
-
-    // Artist
-    public static createArtistDtoKhazaar: CreateArtistDto = {
-        style: "House",
-    };
-
-    // Organizer
-    public static createOrganizerDtoMari: CreateOrganizerDto = {
-        mainLocation: "Siberia",
-    };
-    // Moderator
-    // Student
-
     public static artistTypes: CreateArtistTypeDto[] = [
         {
             artisitTypeName: "DJ",
@@ -118,4 +73,55 @@ export abstract class TestData {
             musicStyleName: "Music style to edit",
         },
     ];
+    // Users
+    public static createUserDtoKhazaar: CreateUserDtoTest = {
+        nickName: "Khazaar",
+        auth: {
+            email: "khazaar@gmail.com",
+            password: "asdfasd_fasdg345",
+        },
+    };
+
+    public static createUserDtoMari: CreateUserDtoTest = {
+        nickName: "Marii",
+        auth: {
+            email: "mari@gmail.com",
+            password: "sdfas!dasyeer2",
+        },
+    };
+
+    public static createUserDtoKaya: CreateUserDtoTest = {
+        nickName: "Kaya the bird",
+        auth: {
+            email: "kaya@gmail.com",
+            password: "sdfas33%$dasyeer",
+        },
+    };
+
+    public static createUserDtoPeter: CreateUserDtoTest = {
+        nickName: "Peter Power",
+        auth: {
+            email: "peter@gmail.com",
+            password: "5645&^%3yrte434u5786yrt",
+        },
+    };
+
+    // Artist
+    public static createArtistDtoKhazaar: CreateArtistDto = {
+        artistTypes: [
+            TestData.artistTypes[0].artisitTypeName,
+            TestData.artistTypes[1].artisitTypeName,
+        ],
+        musicStyles: [
+            TestData.musicStyles[0].musicStyleName,
+            TestData.musicStyles[1].musicStyleName,
+        ],
+    };
+
+    // Organizer
+    public static createOrganizerDtoMari: CreateOrganizerDto = {
+        mainLocation: "Siberia",
+    };
+    // Moderator
+    // Student
 }

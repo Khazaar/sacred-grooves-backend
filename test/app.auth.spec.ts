@@ -11,6 +11,7 @@ import * as dotenv from "dotenv";
 
 import { CreateArtistTypeDto } from "src/artist-type/artist-type.dto";
 import { MusicStyleDto } from "src/music-style/music-style.dto";
+import { CreateArtistDto, UpdateArtistDto } from "src/artists/artist.dto";
 
 describe("App auth", () => {
     dotenv.config();
@@ -372,6 +373,7 @@ describe("App auth", () => {
                     .expectStatus(200)
                     .expectBodyContains(editMusicStyleDto.musicStyleName);
             });
+
             it("Should delete music style by Id with moderator role", async () => {
                 await pactum
                     .spec()
@@ -396,6 +398,69 @@ describe("App auth", () => {
                     .get("music-styles/")
                     .expectStatus(200)
                     .expectJsonLength(TestData.musicStyles.length - 1);
+            });
+        });
+        describe("Artists CRUD", () => {
+            describe("Create Artist", () => {
+                it("Should commit me as Artist", async () => {
+                    return await pactum
+                        .spec()
+                        .post("artists/")
+                        .withHeaders({
+                            Authorization:
+                                "Bearer $S{" +
+                                TestData.createUserDtoKhazaar.tokenKey +
+                                "}",
+                        })
+                        .withBody(TestData.createArtistDtoKhazaar)
+                        .stores("khazaarArtistId", "id")
+                        .expectStatus(201)
+                        .expectBodyContains(
+                            TestData.createArtistDtoKhazaar.artistTypes[0],
+                        );
+                });
+                it("Should read all artists", async () => {
+                    return await pactum
+                        .spec()
+                        .get("artists/")
+                        .withHeaders({
+                            Authorization:
+                                "Bearer $S{" +
+                                TestData.createUserDtoKhazaar.tokenKey +
+                                "}",
+                        })
+                        .expectStatus(200)
+                        .expectJsonLength(1);
+                });
+                it("Should update my artist profile", async () => {
+                    const updateArtistDto: UpdateArtistDto = {
+                        artistTypes: [TestData.artistTypes[3].artisitTypeName],
+                    };
+                    return await pactum
+                        .spec()
+                        .put("artists/me")
+                        .withHeaders({
+                            Authorization:
+                                "Bearer $S{" +
+                                TestData.createUserDtoKhazaar.tokenKey +
+                                "}",
+                        })
+                        .withBody(updateArtistDto)
+                        .expectStatus(200)
+                        .expectBodyContains(updateArtistDto.artistTypes[0]);
+                });
+                // it("Should delete my artist profile", async () => {
+                //     return await pactum
+                //         .spec()
+                //         .delete("artists/me")
+                //         .withHeaders({
+                //             Authorization:
+                //                 "Bearer $S{" +
+                //                 TestData.createUserDtoKhazaar.tokenKey +
+                //                 "}",
+                //         })
+                //         .expectStatus(200);
+                // });
             });
         });
     });
