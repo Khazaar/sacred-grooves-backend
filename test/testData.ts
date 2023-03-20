@@ -1,39 +1,49 @@
 import { CreateArtistTypeDto } from "src/artist-type/artist-type.dto";
 import { CreateArtistDto } from "src/artists/artist.dto";
-import { AuthDto } from "src/auth/auth.dto";
+import { AuthDto } from "src/authz/auth.dto";
 import { MusicStyleDto } from "src/music-style/music-style.dto";
 import { CreateOrganizerDto } from "src/organizer/organizer.dto";
 import { CreateUserDto } from "../src/user/user.dto";
 
-class CreateUserDtoTest extends CreateUserDto {
+class CreateUserDtoTest {
+    nickName?: string;
     access_token?: string;
     tokenKey?: string;
+    auth: AuthDto;
 }
 
 export abstract class TestData {
     // Users
     public static createUserDtoKhazaar: CreateUserDtoTest = {
         nickName: "Khazaar",
-        email: "khazaar@gmail.com",
-        password: "asdfasd_fasdg345",
+        auth: {
+            email: "khazaar@gmail.com",
+            password: "asdfasd_fasdg345",
+        },
     };
 
     public static createUserDtoMari: CreateUserDtoTest = {
-        email: "mari@gmail.com",
-        password: "sdfas!dasyeer2",
         nickName: "Marii",
+        auth: {
+            email: "mari@gmail.com",
+            password: "sdfas!dasyeer2",
+        },
     };
 
     public static createUserDtoKaya: CreateUserDtoTest = {
-        email: "kaya@gmail.com",
-        password: "sdfas33%$dasyeer",
         nickName: "Kaya the bird",
+        auth: {
+            email: "kaya@gmail.com",
+            password: "sdfas33%$dasyeer",
+        },
     };
 
     public static createUserDtoPeter: CreateUserDtoTest = {
-        email: "peter@gmail.com",
-        password: "5645&^%3yrte434u5786yrt",
         nickName: "Peter Power",
+        auth: {
+            email: "peter@gmail.com",
+            password: "5645&^%3yrte434u5786yrt",
+        },
     };
 
     // Artist

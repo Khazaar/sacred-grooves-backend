@@ -42,17 +42,21 @@ export class UserController {
     }
 
     @Get("me")
-    public async getMe(@GetUser() user: User) {
-        return user;
+    public async getMe(@GetAccessPayload() accessPayload: AccessPayload) {
+        return await this.userService.getMe(accessPayload);
     }
     @Patch("me")
-    public async editMe(@GetUser() user: User, @Body() dto: EditUserDto) {
-        return this.userService.editUser(user.id, dto);
+    public async editMe(
+        @GetAccessPayload() accessPayload: AccessPayload,
+        @Body() dto: EditUserDto,
+    ) {
+        return await this.userService.editUser(accessPayload, dto);
     }
 
-    @Get(":id")
-    public getUserById(@Param("id", ParseIntPipe) id: number) {
-        return this.userService.getUserById(id);
+    @Get("email")
+    @Permissions("read:users")
+    public async getUserByEmail(@Body("email") email: string) {
+        return await this.userService.getUserByEmail(email);
     }
     // @Patch(":id")
     // editUser(@Param("id", ParseIntPipe) id: number, @Body() dto: EditUserDto) {
