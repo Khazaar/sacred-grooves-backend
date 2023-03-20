@@ -162,7 +162,6 @@ describe("App auth", () => {
                     .expectBodyContains(TestData.createUserDtoKhazaar.nickName);
             });
         });
-
         describe("Artist types CRUD", () => {
             it("Should create artist type with cud:artistTypes permissions", async () => {
                 for (const artistType of TestData.artistTypes) {
@@ -293,6 +292,110 @@ describe("App auth", () => {
                     .delete("artist-types/{id}")
                     .withPathParams({ id: `$S{artistTypeModId}` })
                     .expectStatus(403);
+            });
+        });
+        describe("Music style CRUD", () => {
+            it("Should create music style with with cud:musicStyles permissions", async () => {
+                for (const musicStyle of TestData.musicStyles) {
+                    await pactum
+                        .spec()
+                        .withHeaders({
+                            Authorization:
+                                "Bearer $S{" +
+                                TestData.createUserDtoKaya.tokenKey +
+                                "}",
+                        })
+                        .post("music-styles/")
+                        .withBody(musicStyle)
+                        .expectStatus(201)
+                        .stores("musicStyleModId", "id")
+                        .expectBodyContains(musicStyle.musicStyleName);
+                }
+            });
+            it("Should not create music style without moderator role", async () => {
+                return await pactum
+                    .spec()
+                    .post("music-styles/")
+                    .withHeaders({
+                        Authorization:
+                            "Bearer $S{" +
+                            TestData.createUserDtoKhazaar.tokenKey +
+                            "}",
+                    })
+                    .withBody(TestData.musicStyles[0])
+                    .expectStatus(403);
+            });
+            it("Should get all music styles with moderator role", async () => {
+                return await pactum
+                    .spec()
+                    .withHeaders({
+                        Authorization:
+                            "Bearer $S{" +
+                            TestData.createUserDtoKaya.tokenKey +
+                            "}",
+                    })
+                    .get("music-styles/")
+                    .expectStatus(200)
+                    .expectJsonLength(TestData.musicStyles.length);
+            });
+
+            it("Should get music style by Id with moderator role", async () => {
+                return await pactum
+                    .spec()
+                    .withHeaders({
+                        Authorization:
+                            "Bearer $S{" +
+                            TestData.createUserDtoKaya.tokenKey +
+                            "}",
+                    })
+                    .get("music-styles/{id}")
+                    .withPathParams({ id: `$S{musicStyleModId}` })
+                    .expectStatus(200)
+                    .expectBodyContains(
+                        TestData.musicStyles[TestData.musicStyles.length - 1]
+                            .musicStyleName,
+                    );
+            });
+            it("Should edit music style by Id with moderator role", async () => {
+                const editMusicStyleDto: MusicStyleDto = {
+                    musicStyleName: "Music style to delete",
+                };
+
+                return await pactum
+                    .spec()
+                    .withHeaders({
+                        Authorization: `Bearer $S{userAt_kaya}`,
+                    })
+                    .patch("music-styles/{id}")
+                    .withPathParams({ id: `$S{musicStyleModId}` })
+                    .withBody(editMusicStyleDto)
+                    .expectStatus(200)
+                    .expectBodyContains(editMusicStyleDto.musicStyleName);
+            });
+            it("Should delete music style by Id with moderator role", async () => {
+                await pactum
+                    .spec()
+                    .withHeaders({
+                        Authorization:
+                            "Bearer $S{" +
+                            TestData.createUserDtoKaya.tokenKey +
+                            "}",
+                    })
+                    .delete("music-styles/{id}")
+                    .withPathParams({ id: `$S{musicStyleModId}` })
+                    .expectStatus(200);
+
+                return await pactum
+                    .spec()
+                    .withHeaders({
+                        Authorization:
+                            "Bearer $S{" +
+                            TestData.createUserDtoKaya.tokenKey +
+                            "}",
+                    })
+                    .get("music-styles/")
+                    .expectStatus(200)
+                    .expectJsonLength(TestData.musicStyles.length - 1);
             });
         });
     });

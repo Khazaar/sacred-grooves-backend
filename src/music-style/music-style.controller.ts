@@ -11,36 +11,35 @@ import {
     Post,
     UseGuards,
 } from "@nestjs/common";
-import { Roles } from "../auth/decorator";
-import { Role } from "../auth/enums/roles.enum";
-import { JwtGuard } from "../auth/guard";
-import { RolesGuard } from "../auth/guard/roles.guard";
 import { MusicStyleDto } from "./music-style.dto";
+import { PermissionsGuard } from "../authz/permissions.guard";
+import { AuthGuard } from "@nestjs/passport";
+import { PermissionTypes } from "../authz/permissions.enum";
+import { Permissions } from "../authz/permissions.decorator";
 
-@UseGuards(JwtGuard, RolesGuard)
+@UseGuards(AuthGuard("jwt"), PermissionsGuard)
 @Controller("music-styles")
 export class MusicStyleController {
     constructor(private readonly musicStyleService: MusicStyleService) {}
+
     @Post()
-    @Roles(Role.Moderator)
+    @Permissions(PermissionTypes.cudMusicStyles)
     public async createMusicStyle(@Body() dto: MusicStyleDto) {
         return await this.musicStyleService.createMusicStyle(dto);
     }
 
     @Get()
-    @Roles(Role.Moderator)
     public async getAllMusicStyles() {
         return await this.musicStyleService.getAllMusicStyles();
     }
 
     @Get(":id")
-    @Roles(Role.Moderator)
     public async getMusicStyleById(@Param("id", ParseIntPipe) id: number) {
         return await this.musicStyleService.getMusicStyleById(id);
     }
 
     @Patch(":id")
-    @Roles(Role.Moderator)
+    @Permissions(PermissionTypes.cudMusicStyles)
     public async editMusicStyleById(
         @Param("id", ParseIntPipe) id: number,
         @Body() dto: MusicStyleDto,
@@ -49,7 +48,7 @@ export class MusicStyleController {
     }
 
     @Delete(":id")
-    @Roles(Role.Moderator)
+    @Permissions(PermissionTypes.cudMusicStyles)
     public async deleteMusicStyleById(@Param("id", ParseIntPipe) id: number) {
         return await this.musicStyleService.deleteMusicStyleById(id);
     }
