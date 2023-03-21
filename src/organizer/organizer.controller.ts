@@ -1,24 +1,33 @@
-import { CreateOrganizerDto } from "./organizer.dto";
+import { CreateOrganizerDto, UpdateOrganizerDto } from "./organizer.dto";
 import { OrganizerService } from "./organizer.service";
-import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
-import { User } from "@prisma/client";
-import { GetUser } from "../auth/decorator";
-import { JwtGuard } from "../auth/guard";
+import { Body, Controller, Get, Post, Put, UseGuards } from "@nestjs/common";
+import { AccessPayload } from "../authz/accessPayload.dto";
+import { GetAccessPayload } from "../authz/getAccessPayloadDecorator";
+import { AuthGuard } from "@nestjs/passport";
+import { PermissionsGuard } from "../authz/permissions.guard";
 
-@UseGuards(JwtGuard)
+@UseGuards(AuthGuard("jwt"), PermissionsGuard)
 @Controller("organizers")
 export class OrganizerController {
-    constructor(private readonly artistsService: OrganizerService) {}
+    constructor(private readonly organizerService: OrganizerService) {}
 
     @Post()
     public async createOrganizer(
+        @GetAccessPayload() accessPayload: AccessPayload,
         @Body() dto: CreateOrganizerDto,
-        @GetUser() user: User,
     ) {
-        return await this.artistsService.createOrganizer(user.id, dto);
+        return await this.organizerService.createOrganizer(accessPayload, dto);
     }
+    @Put("me")
+    public async updateOrganizer(
+        @GetAccessPayload() accessPayload: AccessPayload,
+        @Body() dto: UpdateOrganizerDto,
+    ) {
+        return await this.organizerService.updateOrganizer(accessPayload, dto);
+    }
+
     @Get()
     public async getAllOrganizers() {
-        return await this.artistsService.getAllOrganizers();
+        return await this.organizerService.getAllOrganizers();
     }
 }

@@ -38,6 +38,16 @@ export class ArtistsService {
                     artistTypes: true,
                 },
             });
+            await this.prismaService.user.update({
+                where: { id: user.id },
+                data: {
+                    Artist: {
+                        connect: {
+                            id: artist.id,
+                        },
+                    },
+                },
+            });
             return artist;
         } catch (error) {
             throw new InternalServerErrorException(error);

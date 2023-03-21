@@ -12,7 +12,6 @@ import {
     Delete,
 } from "@nestjs/common";
 import { CreateArtistDto, UpdateArtistDto } from "./artist.dto";
-import { User } from "@prisma/client";
 import { AuthGuard } from "@nestjs/passport";
 import { PermissionsGuard } from "../authz/permissions.guard";
 import { GetAccessPayload } from "../authz/getAccessPayloadDecorator";

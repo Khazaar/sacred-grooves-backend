@@ -5,7 +5,7 @@ export class CreateOrganizerDto {
     mainLocation: string;
 }
 
-export class EditOrganizerDto {
+export class UpdateOrganizerDto {
     @IsOptional()
     mainLocation?: string;
 }
