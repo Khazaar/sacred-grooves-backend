@@ -3,28 +3,27 @@ import {
     InternalServerErrorException,
     NotFoundException,
 } from "@nestjs/common";
+import { AccessPayload } from "src/authz/accessPayload.dto";
 import { Role } from "../auth/enums/roles.enum";
 import { PrismaService } from "../prisma/prisma.service";
-import { CreateOrganizerDto } from "./organizer.dto";
+import { CreateOrganizerDto, UpdateOrganizerDto } from "./organizer.dto";
 
 @Injectable()
 export class OrganizerService {
     constructor(private readonly prismaService: PrismaService) {}
-    public async createOrganizer(userId: number, dto: CreateOrganizerDto) {
+    public async createOrganizer(
+        usaccessPayloadrId: AccessPayload,
+        dto: CreateOrganizerDto,
+    ) {
         const user = await this.prismaService.user.findFirst({
-            where: { id: userId },
+            where: { auth0sub: usaccessPayloadrId.sub },
         });
         if (!user) {
             throw new NotFoundException("User not found");
         }
-        if (user.roles.some((role) => role === Role.Organizer)) {
-            throw new InternalServerErrorException(
-                "User is already an Organizer",
-            );
-        }
         const organizer = await this.prismaService.organizer.create({
             data: {
-                userId: userId,
+                userId: user.id,
                 mainLocation: dto.mainLocation,
             },
             include: {
@@ -32,11 +31,8 @@ export class OrganizerService {
             },
         });
         await this.prismaService.user.update({
-            where: { id: userId },
+            where: { id: user.id },
             data: {
-                roles: {
-                    set: [...user.roles, Role.Organizer],
-                },
                 Organizer: {
                     connect: {
                         id: organizer.id,
@@ -46,6 +42,33 @@ export class OrganizerService {
         });
         return organizer;
     }
+
+    public async updateOrganizer(
+        usaccessPayloadrId: AccessPayload,
+        dto: UpdateOrganizerDto,
+    ) {
+        try {
+            const user = await this.prismaService.user.findFirst({
+                where: { auth0sub: usaccessPayloadrId.sub },
+            });
+            if (!user) {
+                throw new NotFoundException("User not found");
+            }
+            const organizer = await this.prismaService.organizer.update({
+                where: { userId: user.id },
+                data: {
+                    mainLocation: dto.mainLocation,
+                },
+                include: {
+                    user: true,
+                },
+            });
+            return organizer;
+        } catch (error) {
+            throw new InternalServerErrorException(error);
+        }
+    }
+
     public async getAllOrganizers() {
         const organizer = await this.prismaService.organizer.findMany({
             include: {
