@@ -19,9 +19,11 @@
         "test:cov": "jest --coverage",
         "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
         "test:e2e": "jest --watch --no-cache --config ./test/jest-e2e.json",
-        "test:auth": "jest --watch --no-cache --config ./test/jest-Auth.json"
+        "test:auth": "jest --watch --no-cache --config ./test/jest-Auth.json",
+        "test:all": "jest --watch --no-cache --config ./test/test.config.js -i"
     },
     "dependencies": {
+        "@jest/test-sequencer": "^29.5.0",
         "@nestjs/common": "9.0.0",
         "@nestjs/config": "^2.3.1",
         "@nestjs/core": "9.0.0",
