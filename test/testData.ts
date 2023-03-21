@@ -1,6 +1,7 @@
 import { CreateArtistTypeDto } from "src/artist-type/artist-type.dto";
 import { CreateArtistDto } from "src/artists/artist.dto";
 import { AuthDto } from "src/authz/auth.dto";
+import { CreateEventDto } from "src/event/event.dto";
 import { MusicStyleDto } from "src/music-style/music-style.dto";
 import { CreateOrganizerDto } from "src/organizer/organizer.dto";
 import { CreateUserDto } from "../src/user/user.dto";
@@ -45,7 +46,6 @@ export abstract class TestData {
             artisitTypeName: "Type to edit",
         },
     ];
-
     public static musicStyles: MusicStyleDto[] = [
         {
             musicStyleName: "House",

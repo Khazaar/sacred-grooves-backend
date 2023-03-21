@@ -4,8 +4,6 @@ import { PrismaService } from "../src/prisma/prisma.service";
 import { AppModule } from "../src/app.module";
 import * as pactum from "pactum";
 import { CreateUserDto, EditUserDto } from "../src/user/user.dto";
-import { CreateEventDto } from "src/event/event.dto";
-import { GrantModeratorDto } from "src/moderator/moderator.dto";
 import { TestData } from "./testData";
 import * as dotenv from "dotenv";
 
@@ -13,6 +11,7 @@ import { CreateArtistTypeDto } from "src/artist-type/artist-type.dto";
 import { MusicStyleDto } from "src/music-style/music-style.dto";
 import { CreateArtistDto, UpdateArtistDto } from "src/artists/artist.dto";
 import { UpdateOrganizerDto } from "src/organizer/organizer.dto";
+import { CreateEventDto, UpdateEventDto } from "src/event/event.dto";
 
 describe("App auth", () => {
     dotenv.config();
@@ -143,7 +142,6 @@ describe("App auth", () => {
                     })
                     .withBody(editUser)
                     .expectStatus(200)
-                    .inspect()
                     .expectBodyContains(editUser.nickName);
             });
 
@@ -507,6 +505,154 @@ describe("App auth", () => {
                     })
                     .expectStatus(200)
                     .expectJsonLength(1);
+            });
+        });
+        describe("Event CRUD", () => {
+            const createEventDto1: CreateEventDto = {
+                name: "Test Event",
+                artisitId: pactum.parse(`$S{khazaarArtistId}`),
+                location: "Haifa",
+                description: "Nice event",
+            };
+            const createEventDto2: CreateEventDto = {
+                name: "Test Event To Delete",
+                artisitId: pactum.parse(`$S{khazaarArtistId}`),
+                location: "Haifa",
+                description: "Nice event",
+            };
+            it("Should create event for Organizer", async () => {
+                //  Create event2
+                await pactum
+                    .spec()
+                    .post("events")
+                    .withHeaders({
+                        Authorization:
+                            "Bearer $S{" +
+                            TestData.createUserDtoMari.tokenKey +
+                            "}",
+                    })
+                    .withBody(createEventDto1)
+                    .stores("mariEventId1", "id")
+                    .expectStatus(201);
+
+                return pactum
+                    .spec()
+                    .post("events")
+                    .withHeaders({
+                        Authorization:
+                            "Bearer $S{" +
+                            TestData.createUserDtoMari.tokenKey +
+                            "}",
+                    })
+                    .withBody(createEventDto1)
+                    .stores("mariEventId2", "id")
+                    .expectStatus(201)
+                    .expectBodyContains(createEventDto2.description);
+            });
+            it("Should not create event for not Organizer", async () => {
+                return (
+                    pactum
+                        .spec()
+                        .post("events")
+                        .withHeaders({
+                            Authorization:
+                                "Bearer $S{" +
+                                TestData.createUserDtoKaya.tokenKey +
+                                "}",
+                        })
+                        .withBody(createEventDto1)
+                        //.expectStatus(404)
+                        .expectBody("")
+                );
+            });
+
+            it("Should update event by ID for Organizer", async () => {
+                const updateEventDto: UpdateEventDto = {
+                    name: "New event name",
+                    description: "New event description",
+                };
+                return pactum
+                    .spec()
+                    .patch("events/{id}")
+                    .withPathParams({ id: `$S{mariEventId1}` })
+                    .withHeaders({
+                        Authorization:
+                            "Bearer $S{" +
+                            TestData.createUserDtoMari.tokenKey +
+                            "}",
+                    })
+                    .withBody(updateEventDto)
+                    .expectStatus(200)
+                    .expectBodyContains(updateEventDto.name);
+            });
+
+            it("Should get all pending events with rud:evenst permission", async () => {
+                return pactum
+                    .spec()
+                    .get("events/pending")
+                    .withHeaders({
+                        Authorization:
+                            "Bearer $S{" +
+                            TestData.createUserDtoKaya.tokenKey +
+                            "}",
+                    })
+                    .expectStatus(200)
+                    .expectJsonLength(2);
+            });
+
+            it("Should not get all pending events without rud:evenst permission", async () => {
+                return pactum
+                    .spec()
+                    .get("events/pending")
+                    .withHeaders({
+                        Authorization:
+                            "Bearer $S{" +
+                            TestData.createUserDtoKhazaar.tokenKey +
+                            "}",
+                    })
+                    .expectStatus(403);
+            });
+
+            it("Should approve event by ID with rud:evenst permission", async () => {
+                return pactum
+                    .spec()
+                    .patch("events/pending/{id}")
+                    .withPathParams({ id: `$S{mariEventId1}` })
+                    .withHeaders({
+                        Authorization:
+                            "Bearer $S{" +
+                            TestData.createUserDtoKaya.tokenKey +
+                            "}",
+                    })
+                    .expectStatus(200);
+            });
+
+            it("Should read all approved events for everyone", async () => {
+                return pactum
+                    .spec()
+                    .withHeaders({
+                        Authorization:
+                            "Bearer $S{" +
+                            TestData.createUserDtoKhazaar.tokenKey +
+                            "}",
+                    })
+                    .get("events")
+                    .expectStatus(200)
+                    .expectJsonLength(1);
+            });
+
+            it("Should delete pendind event by ID with rud:evenst permission", async () => {
+                return pactum
+                    .spec()
+                    .delete("events/pending/{id}")
+                    .withPathParams({ id: `$S{mariEventId2}` })
+                    .withHeaders({
+                        Authorization:
+                            "Bearer $S{" +
+                            TestData.createUserDtoKaya.tokenKey +
+                            "}",
+                    })
+                    .expectStatus(200);
             });
         });
     });

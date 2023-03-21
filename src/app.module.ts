@@ -23,7 +23,7 @@ import {
     WinstonModule,
     utilities as nestWinstonModuleUtilities,
 } from "nest-winston";
-import { AuthzModule } from './authz/authz.module';
+import { AuthzModule } from "./authz/authz.module";
 import * as winston from "winston";
 
 const fileFormat = winston.format.printf(
@@ -58,8 +58,8 @@ const customFormat = winston.format.printf(
         ArtistTypeModule,
         MusicStyleModule,
         WinstonModule.forRoot({
-            silent: true, // Enable logger here
-            level: "info",
+            silent: false, // Enable logger here
+            level: "error",
             format: winston.format.errors({ stack: true }),
             transports: [
                 new winston.transports.Console({
