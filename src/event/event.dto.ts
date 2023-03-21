@@ -6,8 +6,6 @@ export class CreateEventDto {
     @IsNotEmpty()
     description: string;
     @IsNotEmpty()
-    ogranizerId: number;
-    @IsNotEmpty()
     artisitId: number;
     @IsNotEmpty()
     location: string;
@@ -17,19 +15,17 @@ export class CreateEventDto {
     dateEnd?: Date;
 }
 
-export class EditEventDto {
+export class UpdateEventDto {
     @IsOptional()
-    name: string;
+    name?: string;
     @IsOptional()
-    description: string;
+    description?: string;
     @IsOptional()
-    ogranizerId: number;
+    artisitId?: number;
     @IsOptional()
-    artisitId: number;
+    location?: string;
     @IsOptional()
-    location: string;
+    dateStart?: Date;
     @IsOptional()
-    dateStart: Date;
-    @IsOptional()
-    dateEnd: Date;
+    dateEnd?: Date;
 }

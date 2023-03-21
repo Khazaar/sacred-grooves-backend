@@ -1,50 +1,19 @@
 import { CreateArtistTypeDto } from "src/artist-type/artist-type.dto";
 import { CreateArtistDto } from "src/artists/artist.dto";
-import { AuthDto } from "src/auth/auth.dto";
+import { AuthDto } from "src/authz/auth.dto";
+import { CreateEventDto } from "src/event/event.dto";
 import { MusicStyleDto } from "src/music-style/music-style.dto";
 import { CreateOrganizerDto } from "src/organizer/organizer.dto";
-import { CreateUserDto } from "src/user/user.dto";
+import { CreateUserDto } from "../src/user/user.dto";
+
+class CreateUserDtoTest {
+    nickName?: string;
+    access_token?: string;
+    tokenKey?: string;
+    auth: AuthDto;
+}
 
 export abstract class TestData {
-    // Artist
-    public static authDtoKhazaar: AuthDto = {
-        email: "khazaar@gmail.com",
-        password: "asdfasdfasdg345",
-    };
-    public static createUserDtoKhazaar: CreateUserDto = {
-        nickName: "Khazaar",
-    };
-    public static createArtistDtoKhazaar: CreateArtistDto = {
-        style: "House",
-    };
-    // Organizer
-    public static authDtoMari: AuthDto = {
-        email: "mari@gmail.com",
-        password: "sdfasdasyeer",
-    };
-    public static createUserDtoMari: CreateUserDto = {
-        nickName: "Marii",
-    };
-    public static createOrganizerDtoMari: CreateOrganizerDto = {
-        mainLocation: "Siberia",
-    };
-    // Moderator
-    public static authDtoKaya: AuthDto = {
-        email: "kaya@gmail.com",
-        password: "sdfasdasyeer",
-    };
-    public static createUserDtoKaya: CreateUserDto = {
-        nickName: "Kaya the bird",
-    };
-    // Student
-    public static authDtoPeter: AuthDto = {
-        email: "peter@gmail.com",
-        password: "56453yrte434u5786yrt",
-    };
-    public static createUserDtoPeter: CreateUserDto = {
-        nickName: "Peter Power",
-    };
-
     public static artistTypes: CreateArtistTypeDto[] = [
         {
             artisitTypeName: "DJ",
@@ -77,7 +46,6 @@ export abstract class TestData {
             artisitTypeName: "Type to edit",
         },
     ];
-
     public static musicStyles: MusicStyleDto[] = [
         {
             musicStyleName: "House",
@@ -105,4 +73,55 @@ export abstract class TestData {
             musicStyleName: "Music style to edit",
         },
     ];
+    // Users
+    public static createUserDtoKhazaar: CreateUserDtoTest = {
+        nickName: "Khazaar",
+        auth: {
+            email: "khazaar@gmail.com",
+            password: "asdfasd_fasdg345",
+        },
+    };
+
+    public static createUserDtoMari: CreateUserDtoTest = {
+        nickName: "Marii",
+        auth: {
+            email: "mari@gmail.com",
+            password: "sdfas!dasyeer2",
+        },
+    };
+
+    public static createUserDtoKaya: CreateUserDtoTest = {
+        nickName: "Kaya the bird",
+        auth: {
+            email: "kaya@gmail.com",
+            password: "sdfas33%$dasyeer",
+        },
+    };
+
+    public static createUserDtoPeter: CreateUserDtoTest = {
+        nickName: "Peter Power",
+        auth: {
+            email: "peter@gmail.com",
+            password: "5645&^%3yrte434u5786yrt",
+        },
+    };
+
+    // Artist
+    public static createArtistDtoKhazaar: CreateArtistDto = {
+        artistTypes: [
+            TestData.artistTypes[0].artisitTypeName,
+            TestData.artistTypes[1].artisitTypeName,
+        ],
+        musicStyles: [
+            TestData.musicStyles[0].musicStyleName,
+            TestData.musicStyles[1].musicStyleName,
+        ],
+    };
+
+    // Organizer
+    public static createOrganizerDtoMari: CreateOrganizerDto = {
+        mainLocation: "Siberia",
+    };
+    // Moderator
+    // Student
 }
