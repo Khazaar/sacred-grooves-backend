@@ -11,22 +11,24 @@ datasource db {
 }
 
 model User {
-  id           Int          @id @default(autoincrement())
-  auth0sub     String?      @unique
-  nickName     String?
-  firstName    String?
-  lastName     String?
-  telegramName String?
-  email        String       @unique
-  passwordHash String
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  Artist       Artist?
-  Organizer    Organizer?
-  Visitor      Visitor?
-  Moderator    Moderator?
-  SupportTeam  SupportTeam?
-  roles        String[]
+  id              Int          @id @default(autoincrement())
+  auth0sub        String?      @unique
+  nickName        String?
+  firstName       String?
+  lastName        String?
+  telegramName    String?
+  email           String       @unique
+  passwordHash    String
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  Artist          Artist?
+  Organizer       Organizer?
+  Visitor         Visitor?
+  Moderator       Moderator?
+  SupportTeam     SupportTeam?
+  roles           String[]
+  avatar          Picture?     @relation(fields: [avatarPictureId], references: [id])
+  avatarPictureId Int? @unique
 }
 
 model Artist {
@@ -55,18 +57,20 @@ model Visitor {
 }
 
 model Event {
-  id          Int       @id @default(autoincrement())
-  name        String
-  description String
-  ogranizerId Int
-  ogranizer   Organizer @relation(fields: [ogranizerId], references: [id], onDelete: Cascade)
-  artisitId   Int
-  artists     Artist    @relation(fields: [artisitId], references: [id], onDelete: Cascade)
-  visitorsId  Int?
-  location    String
-  dateStart   DateTime?
-  dateEnd     DateTime?
-  isApproved  Boolean   @default(false)
+  id              Int       @id @default(autoincrement()) @unique
+  name            String
+  description     String
+  ogranizerId     Int
+  ogranizer       Organizer @relation(fields: [ogranizerId], references: [id], onDelete: Cascade)
+  artisitId       Int
+  artists         Artist    @relation(fields: [artisitId], references: [id], onDelete: Cascade)
+  visitorsId      Int?
+  location        String
+  dateStart       DateTime?
+  dateEnd         DateTime?
+  isApproved      Boolean   @default(false)
+  poster          Picture?  @relation(fields: [posterPictureId], references: [id])
+  posterPictureId Int? @unique
 }
 
 model Moderator {
@@ -77,15 +81,15 @@ model Moderator {
 
 model ArtistType {
   id              Int     @id @default(autoincrement())
-  artistId        Int?   
+  artistId        Int?
   artist          Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  artisitTypeName String @unique
+  artisitTypeName String  @unique
 }
 
 model MusicStyle {
-  id             Int    @id @default(autoincrement())
-  musicStyleName String @unique
-  artistId       Int?    
+  id             Int     @id @default(autoincrement())
+  musicStyleName String  @unique
+  artistId       Int?
   artist         Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
 }
 
@@ -93,4 +97,12 @@ model SupportTeam {
   id            Int  @id @default(autoincrement())
   supportTeamId Int  @unique
   user          User @relation(fields: [supportTeamId], references: [id], onDelete: Cascade)
+}
+
+model Picture {
+  id           Int     @id @default(autoincrement())
+  title        String
+  pictureS3Url String
+  User         User?
+  Event        Event?
 }

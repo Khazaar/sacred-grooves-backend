@@ -1,35 +1,66 @@
 import { EventService } from "./event.service";
 import {
+    BadRequestException,
     Body,
     Controller,
     Delete,
     Get,
+    Inject,
+    LoggerService,
     Param,
     ParseIntPipe,
     Patch,
     Post,
+    UploadedFile,
     UseGuards,
 } from "@nestjs/common";
 import { JwtGuard } from "../auth/guard";
 import { CreateEventDto, UpdateEventDto } from "./event.dto";
-import { RolesGuard } from "../auth/guard/roles.guard";
 import { AccessPayload } from "../authz/accessPayload.dto";
 import { GetAccessPayload } from "../authz/getAccessPayloadDecorator";
 import { PermissionTypes } from "../authz/permissions.enum";
 import { Permissions } from "../authz/permissions.decorator";
 import { PermissionsGuard } from "../authz/permissions.guard";
+import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
+import { CloudAwsService } from "src/cloud-aws/cloud-aws.service";
 
 @UseGuards(JwtGuard, PermissionsGuard)
 @Controller("events")
 export class EventController {
-    constructor(private readonly eventService: EventService) {}
+    constructor(
+        private readonly eventService: EventService,
+        @Inject(WINSTON_MODULE_NEST_PROVIDER)
+        private readonly logger: LoggerService,
+        private readonly cloudAwsService: CloudAwsService,
+    ) {}
+    public maxSizeInBytes = 3 * 1024 * 1024; // 2 MB
 
     @Post()
     public async createEvent(
         @Body() dto: CreateEventDto,
         @GetAccessPayload() accessPayload: AccessPayload,
+        @UploadedFile() file,
     ) {
-        return await this.eventService.createEvent(accessPayload, dto);
+        let posterUrl = "";
+        if (file) {
+            if (file.size > this.maxSizeInBytes) {
+                throw new BadRequestException(
+                    "File size exceeds the maximum allowed size",
+                );
+            }
+            try {
+                this.logger.log(file);
+                posterUrl = await this.cloudAwsService.uploadImageToS3AWS(file);
+                return await this.eventService.createEvent(
+                    accessPayload,
+                    dto,
+                    posterUrl,
+                );
+            } catch (error) {
+                this.logger.error(error);
+                throw new BadRequestException(error);
+            }
+        }
     }
     @Get()
     public async getAllEvents() {

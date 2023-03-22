@@ -24,7 +24,12 @@ import {
     utilities as nestWinstonModuleUtilities,
 } from "nest-winston";
 import { AuthzModule } from "./authz/authz.module";
+import { CloudAwsService } from "./cloud-aws/cloud-aws.service";
+import { CloudAwsModule } from "./cloud-aws/cloud-aws.module";
+import { DevtestController } from "./devtest/devtest.controller";
+import { DevtestModule } from "./devtest/devtest.module";
 import * as winston from "winston";
+import { MulterModule } from "@nestjs/platform-express";
 
 const fileFormat = winston.format.printf(
     ({ level, message, timestamp, context }) => {
@@ -84,6 +89,12 @@ const customFormat = winston.format.printf(
             ],
         }),
         AuthzModule,
+        CloudAwsModule,
+        DevtestModule,
+
+        MulterModule.register({
+            dest: "./uploads",
+        }),
     ],
     controllers: [
         UserController,
@@ -91,6 +102,7 @@ const customFormat = winston.format.printf(
         EventController,
         ModeratorController,
         ArtistTypeController,
+        DevtestController,
     ],
     providers: [
         UserService,
@@ -102,6 +114,7 @@ const customFormat = winston.format.printf(
             provide: APP_INTERCEPTOR,
             useClass: HTTPInterceptor,
         },
+        CloudAwsService,
     ],
 })
 export class AppModule {}

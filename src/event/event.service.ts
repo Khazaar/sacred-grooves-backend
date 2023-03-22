@@ -23,6 +23,7 @@ export class EventService {
     public async createEvent(
         accessPayload: AccessPayload,
         dto: CreateEventDto,
+        posterUrl: string,
     ) {
         try {
             const user = await this.prismaService.user.findFirst({
@@ -51,14 +52,34 @@ export class EventService {
                 this.logger.error("Artist not found");
                 throw new NotFoundException("Artist not found");
             }
+            // const poster1 = await this.prismaService.picture.create({
+            //     data: {
+            //         pictureS3Url: posterUrl,
+            //         title: `Poster for ${dto.name}`,
+            //     },
+            // });
 
             const event = await this.prismaService.event.create({
                 data: {
                     name: dto.name,
-                    ogranizerId: ogranizer.id,
-                    artisitId: artist.id,
+                    ogranizer: {
+                        connect: {
+                            id: ogranizer.id,
+                        },
+                    },
+                    artists: {
+                        connect: {
+                            id: artist.id,
+                        },
+                    },
                     location: dto.location,
                     description: dto.description,
+                    poster: {
+                        create: {
+                            pictureS3Url: posterUrl,
+                            title: `Poster for ${dto.name}`,
+                        },
+                    },
                 },
             });
 

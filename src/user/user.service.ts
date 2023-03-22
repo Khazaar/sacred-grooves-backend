@@ -1,18 +1,17 @@
 import {
-    ForbiddenException,
     Inject,
     Injectable,
     InternalServerErrorException,
     LoggerService,
     NotFoundException,
 } from "@nestjs/common";
-import { Linter } from "eslint";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateUserDto, EditUserDto } from "./user.dto";
 import * as argon from "argon2";
-import { AccessPayload } from "src/authz/accessPayload.dto";
+import { AccessPayload } from "../authz/accessPayload.dto";
 import { Prisma } from "@prisma/client";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
+import { CloudAwsService } from "../cloud-aws/cloud-aws.service";
 
 @Injectable()
 export class UserService {
@@ -20,9 +19,14 @@ export class UserService {
         @Inject(WINSTON_MODULE_NEST_PROVIDER)
         private readonly logger: LoggerService,
         private readonly prismaService: PrismaService,
+        private readonly cloudAwsService: CloudAwsService,
     ) {}
 
-    public async createUser(dto: CreateUserDto, accessPayload: AccessPayload) {
+    public async createUser(
+        dto: CreateUserDto,
+        accessPayload: AccessPayload,
+        avatarUrl: any,
+    ) {
         const passwordHash = await argon.hash(dto.password);
         const user = await this.prismaService.user.create({
             data: {
@@ -30,11 +34,15 @@ export class UserService {
                 passwordHash: passwordHash,
                 nickName: dto.nickName,
                 auth0sub: accessPayload.sub,
+                avatar: {
+                    create: {
+                        pictureS3Url: avatarUrl,
+                        title: `Avatar for ${dto.nickName}`,
+                    },
+                },
             },
-            select: {
-                id: true,
-                email: true,
-                createdAt: true,
+            include: {
+                avatar: true,
             },
         });
         if (!user) {
