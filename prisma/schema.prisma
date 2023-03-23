@@ -18,7 +18,6 @@ model User {
   lastName        String?
   telegramName    String?
   email           String       @unique
-  passwordHash    String
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
   Artist          Artist?
@@ -26,9 +25,11 @@ model User {
   Visitor         Visitor?
   Moderator       Moderator?
   SupportTeam     SupportTeam?
+  mapLocation     MapLocation? @relation(fields: [locationId], references: [id])
   roles           String[]
   avatar          Picture?     @relation(fields: [avatarPictureId], references: [id])
-  avatarPictureId Int? @unique
+  avatarPictureId Int?         @unique
+  locationId      Int?
 }
 
 model Artist {
@@ -57,20 +58,21 @@ model Visitor {
 }
 
 model Event {
-  id              Int       @id @default(autoincrement()) @unique
+  id              Int          @id @unique @default(autoincrement())
   name            String
   description     String
   ogranizerId     Int
-  ogranizer       Organizer @relation(fields: [ogranizerId], references: [id], onDelete: Cascade)
+  ogranizer       Organizer    @relation(fields: [ogranizerId], references: [id], onDelete: Cascade)
   artisitId       Int
-  artists         Artist    @relation(fields: [artisitId], references: [id], onDelete: Cascade)
+  artists         Artist       @relation(fields: [artisitId], references: [id], onDelete: Cascade)
   visitorsId      Int?
-  location        String
+  mapLocation     MapLocation? @relation(fields: [locationId], references: [id])
   dateStart       DateTime?
   dateEnd         DateTime?
-  isApproved      Boolean   @default(false)
-  poster          Picture?  @relation(fields: [posterPictureId], references: [id])
-  posterPictureId Int? @unique
+  isApproved      Boolean      @default(false)
+  poster          Picture?     @relation(fields: [posterPictureId], references: [id])
+  posterPictureId Int?         @unique
+  locationId      Int?
 }
 
 model Moderator {
@@ -100,9 +102,21 @@ model SupportTeam {
 }
 
 model Picture {
-  id           Int     @id @default(autoincrement())
+  id           Int    @id @default(autoincrement())
   title        String
   pictureS3Url String
   User         User?
   Event        Event?
+}
+
+model MapLocation {
+  id        Int     @id @default(autoincrement())
+  name      String?
+  latitude  Float?
+  longitude Float?
+  address   String?
+  city      String?
+  country   String?
+  User      User[]
+  Event     Event[]
 }

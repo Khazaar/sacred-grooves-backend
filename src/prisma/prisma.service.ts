@@ -15,50 +15,18 @@ export class PrismaService extends PrismaClient {
     }
 
     public async cleadDb() {
-        const timeout = 1;
         await this.$transaction([
             this.artist.deleteMany(),
             this.user.deleteMany(),
-        ]);
-        setTimeout(() => {}, timeout);
-        await this.$transaction([
-            this.user.deleteMany(),
-            this.user.deleteMany(),
-        ]);
-        setTimeout(() => {}, timeout);
-        await this.$transaction([
-            this.organizer.deleteMany(),
-            this.user.deleteMany(),
-        ]);
-        setTimeout(() => {}, timeout);
-        await this.$transaction([
-            this.visitor.deleteMany(),
-            this.user.deleteMany(),
-        ]);
-        setTimeout(() => {}, timeout);
-        await this.$transaction([
-            this.event.deleteMany(),
-            this.user.deleteMany(),
-        ]);
-        setTimeout(() => {}, timeout);
-        await this.$transaction([
-            this.moderator.deleteMany(),
-            this.user.deleteMany(),
-        ]);
-        setTimeout(() => {}, timeout);
-        await this.$transaction([
-            this.artistType.deleteMany(),
-            this.user.deleteMany(),
-        ]);
-        setTimeout(() => {}, timeout);
-        await this.$transaction([
-            this.musicStyle.deleteMany(),
-            this.user.deleteMany(),
-        ]);
-        setTimeout(() => {}, timeout);
-        await this.$transaction([
             this.supportTeam.deleteMany(),
-            this.user.deleteMany(),
+            this.visitor.deleteMany(),
+            this.event.deleteMany(),
+            this.moderator.deleteMany(),
+            this.artistType.deleteMany(),
+            this.musicStyle.deleteMany(),
+            this.supportTeam.deleteMany(),
+            this.picture.deleteMany(),
+            this.mapLocation.deleteMany(),
         ]);
     }
 }

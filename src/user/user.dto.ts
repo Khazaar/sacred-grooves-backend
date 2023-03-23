@@ -1,4 +1,5 @@
 import { ArrayMinSize, IsArray, IsNotEmpty, IsOptional } from "class-validator";
+import { MapLocation } from "../enums";
 
 export class CreateUserDto {
     @IsNotEmpty()
@@ -13,6 +14,8 @@ export class CreateUserDto {
     lastName?: string;
     @IsOptional()
     telegramName?: string;
+    @IsOptional()
+    mapLocation?: MapLocation;
 }
 
 export class EditUserDto {
@@ -29,7 +32,5 @@ export class EditUserDto {
     @IsOptional()
     telegramName?: string;
     @IsOptional()
-    @IsArray()
-    @ArrayMinSize(1)
-    roles?: string[];
+    mapLocation?: MapLocation;
 }

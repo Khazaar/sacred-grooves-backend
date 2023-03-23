@@ -11,7 +11,7 @@ import { CreateArtistTypeDto } from "src/artist-type/artist-type.dto";
 import { MusicStyleDto } from "src/music-style/music-style.dto";
 import { CreateArtistDto, UpdateArtistDto } from "src/artists/artist.dto";
 import { UpdateOrganizerDto } from "src/organizer/organizer.dto";
-import { CreateEventDto, UpdateEventDto } from "src/event/event.dto";
+import { CreateEventDto, UpdateEventDto } from "../src/event/event.dto";
 
 describe("App auth", () => {
     dotenv.config();
@@ -42,7 +42,7 @@ describe("App auth", () => {
         await prismaService.$disconnect();
     });
     beforeEach(() => {});
-    describe("Auth", () => {
+    describe("e2e tests", () => {
         describe("SignIn / get auth token", () => {
             it("Should get tokens from Auth0", async () => {
                 for (const usr of users) {
@@ -63,7 +63,7 @@ describe("App auth", () => {
                         .expectStatus(200)
                         .stores(usr.tokenKey, "access_token");
                 }
-            });
+            }, 10000);
         });
 
         describe("Users CRUD", () => {
@@ -75,6 +75,8 @@ describe("App auth", () => {
                         password: usr.auth.password,
                         email: usr.auth.email,
                     };
+                    usr.mapLocation &&
+                        (createUser.mapLocation = usr.mapLocation);
                     if (usr != TestData.createUserDtoKhazaar) {
                         await pactum
                             .spec()
@@ -99,6 +101,7 @@ describe("App auth", () => {
                                 Authorization:
                                     "Bearer $S{" + usr.tokenKey + "}",
                             })
+                            .expectBodyContains(usr.mapLocation.address)
                             .expectStatus(201);
                     }
                 }
@@ -531,6 +534,14 @@ describe("App auth", () => {
                 artisitId: pactum.parse(`$S{khazaarArtistId}`),
                 location: "Haifa",
                 description: "Nice event",
+                mapLocation: {
+                    name: "Ecstatic Dance",
+                    latitude: 123,
+                    longitude: 234,
+                    address: "Good address",
+                    city: "Paris",
+                    country: "France",
+                },
             };
             const createEventDto2: CreateEventDto = {
                 name: "Test Event To Delete",
