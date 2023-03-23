@@ -1,16 +1,14 @@
 import {
-    ForbiddenException,
     Inject,
     Injectable,
     InternalServerErrorException,
     LoggerService,
     NotFoundException,
 } from "@nestjs/common";
-import { Linter } from "eslint";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateUserDto, EditUserDto } from "./user.dto";
 import * as argon from "argon2";
-import { AccessPayload } from "src/authz/accessPayload.dto";
+import { AccessPayload } from "../authz/accessPayload.dto";
 import { Prisma } from "@prisma/client";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 
@@ -22,7 +20,11 @@ export class UserService {
         private readonly prismaService: PrismaService,
     ) {}
 
-    public async createUser(dto: CreateUserDto, accessPayload: AccessPayload) {
+    public async createUser(
+        dto: CreateUserDto,
+        accessPayload: AccessPayload,
+        avatarUrl: any,
+    ) {
         const passwordHash = await argon.hash(dto.password);
         const user = await this.prismaService.user.create({
             data: {
@@ -30,11 +32,15 @@ export class UserService {
                 passwordHash: passwordHash,
                 nickName: dto.nickName,
                 auth0sub: accessPayload.sub,
+                avatar: {
+                    create: {
+                        pictureS3Url: avatarUrl,
+                        title: `Avatar for ${dto.nickName}`,
+                    },
+                },
             },
-            select: {
-                id: true,
-                email: true,
-                createdAt: true,
+            include: {
+                avatar: true,
             },
         });
         if (!user) {
@@ -59,7 +65,11 @@ export class UserService {
         return user;
     }
 
-    public async editUser(accessPayload: AccessPayload, data: EditUserDto) {
+    public async editUser(
+        accessPayload: AccessPayload,
+        dto: EditUserDto,
+        avatarUrl: string,
+    ) {
         let user = await this.prismaService.user.findFirst({
             where: { auth0sub: accessPayload.sub },
         });
@@ -69,7 +79,20 @@ export class UserService {
 
         user = await this.prismaService.user.update({
             where: { auth0sub: accessPayload.sub },
-            data,
+            data: {
+                email: dto.email,
+                nickName: dto.nickName,
+                auth0sub: accessPayload.sub,
+                avatar: {
+                    create: {
+                        pictureS3Url: avatarUrl,
+                        title: `Avatar for ${dto.nickName}`,
+                    },
+                },
+            },
+            include: {
+                avatar: true,
+            },
         });
         delete user.passwordHash;
         return user;

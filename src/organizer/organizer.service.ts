@@ -4,7 +4,6 @@ import {
     NotFoundException,
 } from "@nestjs/common";
 import { AccessPayload } from "src/authz/accessPayload.dto";
-import { Role } from "../auth/enums/roles.enum";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateOrganizerDto, UpdateOrganizerDto } from "./organizer.dto";
 

@@ -6,7 +6,7 @@ import * as pactum from "pactum";
 import { CreateUserDto, EditUserDto } from "../src/user/user.dto";
 import { TestData } from "./testData";
 import * as dotenv from "dotenv";
-
+import * as fs from "fs";
 import { CreateArtistTypeDto } from "src/artist-type/artist-type.dto";
 import { MusicStyleDto } from "src/music-style/music-style.dto";
 import { CreateArtistDto, UpdateArtistDto } from "src/artists/artist.dto";
@@ -75,14 +75,32 @@ describe("App auth", () => {
                         password: usr.auth.password,
                         email: usr.auth.email,
                     };
-                    await pactum
-                        .spec()
-                        .post("users")
-                        .withBody(createUser)
-                        .withHeaders({
-                            Authorization: "Bearer $S{" + usr.tokenKey + "}",
-                        })
-                        .expectStatus(201);
+                    if (usr != TestData.createUserDtoKhazaar) {
+                        await pactum
+                            .spec()
+                            .post("users")
+                            .withBody(createUser)
+                            .withHeaders({
+                                Authorization:
+                                    "Bearer $S{" + usr.tokenKey + "}",
+                            })
+                            .expectStatus(201);
+                    } else {
+                        const form = new FormData();
+                        const avatarPath = "test/images/Khazaar_avatar.jpg";
+                        const fileName = "Khazaar_avatar.jpg";
+                        const avatarFile = fs.readFileSync(avatarPath);
+
+                        await pactum
+                            .spec()
+                            .post("users")
+                            .withBody(createUser)
+                            .withHeaders({
+                                Authorization:
+                                    "Bearer $S{" + usr.tokenKey + "}",
+                            })
+                            .expectStatus(201);
+                    }
                 }
             });
 
