@@ -25,11 +25,26 @@ export class UserService {
         accessPayload: AccessPayload,
         avatarUrl: any,
     ) {
-        const passwordHash = await argon.hash(dto.password);
+        const mapLocation = await this.prismaService.mapLocation.create({
+            data: {},
+        });
+
+        if (dto.mapLocation) {
+            await this.prismaService.mapLocation.update({
+                where: { id: mapLocation.id },
+                data: {
+                    name: dto.mapLocation.name,
+                    address: dto.mapLocation.address,
+                    city: dto.mapLocation.city,
+                    country: dto.mapLocation.country,
+                    latitude: dto.mapLocation.latitude,
+                    longitude: dto.mapLocation.longitude,
+                },
+            });
+        }
         const user = await this.prismaService.user.create({
             data: {
                 email: dto.email,
-                passwordHash: passwordHash,
                 nickName: dto.nickName,
                 auth0sub: accessPayload.sub,
                 avatar: {
@@ -38,11 +53,16 @@ export class UserService {
                         title: `Avatar for ${dto.nickName}`,
                     },
                 },
+                mapLocation: {
+                    connect: { id: mapLocation.id },
+                },
             },
             include: {
                 avatar: true,
+                mapLocation: true,
             },
         });
+
         if (!user) {
             throw new NotFoundException("User not found");
         }
@@ -51,7 +71,6 @@ export class UserService {
 
     public async getAllUsers() {
         const users = await this.prismaService.user.findMany();
-        users.forEach((user) => delete user.passwordHash);
         return users;
     }
 
@@ -76,6 +95,22 @@ export class UserService {
         if (!user) {
             throw new NotFoundException("User not found");
         }
+        let mapLocation = await this.prismaService.mapLocation.create({
+            data: {},
+        });
+
+        if (dto.mapLocation) {
+            mapLocation = await this.prismaService.mapLocation.create({
+                data: {
+                    name: dto.mapLocation.name,
+                    address: dto.mapLocation.address,
+                    city: dto.mapLocation.city,
+                    country: dto.mapLocation.country,
+                    latitude: dto.mapLocation.latitude,
+                    longitude: dto.mapLocation.longitude,
+                },
+            });
+        }
 
         user = await this.prismaService.user.update({
             where: { auth0sub: accessPayload.sub },
@@ -89,12 +124,15 @@ export class UserService {
                         title: `Avatar for ${dto.nickName}`,
                     },
                 },
+                mapLocation: {
+                    connect: { id: mapLocation.id },
+                },
             },
             include: {
                 avatar: true,
+                mapLocation: true,
             },
         });
-        delete user.passwordHash;
         return user;
     }
 

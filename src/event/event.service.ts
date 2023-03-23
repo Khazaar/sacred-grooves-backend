@@ -29,7 +29,7 @@ export class EventService {
             const user = await this.prismaService.user.findFirst({
                 where: { auth0sub: accessPayload.sub },
             });
-            console.log(user);
+
             if (!user) {
                 this.logger.error("User not found");
                 throw new NotFoundException("User not found");
@@ -38,7 +38,7 @@ export class EventService {
             const ogranizer = await this.prismaService.organizer.findFirst({
                 where: { userId: user.id },
             });
-            console.log(ogranizer);
+
             if (!ogranizer) {
                 this.logger.error("Requested for not an organizer");
                 throw new InternalServerErrorException(
@@ -59,6 +59,23 @@ export class EventService {
             //     },
             // });
 
+            let mapLocation = await this.prismaService.mapLocation.create({
+                data: {},
+            });
+
+            if (dto.mapLocation) {
+                mapLocation = await this.prismaService.mapLocation.create({
+                    data: {
+                        name: dto.mapLocation.name,
+                        address: dto.mapLocation.address,
+                        city: dto.mapLocation.city,
+                        country: dto.mapLocation.country,
+                        latitude: dto.mapLocation.latitude,
+                        longitude: dto.mapLocation.longitude,
+                    },
+                });
+            }
+
             const event = await this.prismaService.event.create({
                 data: {
                     name: dto.name,
@@ -72,7 +89,11 @@ export class EventService {
                             id: artist.id,
                         },
                     },
-                    location: dto.location,
+                    mapLocation: {
+                        connect: {
+                            id: mapLocation.id,
+                        },
+                    },
                     description: dto.description,
                     poster: {
                         create: {
@@ -81,26 +102,13 @@ export class EventService {
                         },
                     },
                 },
+                include: {
+                    artists: true,
+                    ogranizer: true,
+                    mapLocation: true,
+                    poster: true,
+                },
             });
-
-            // await this.prismaService.artist.update({
-            //     where: { id: artist.id },
-            //     data: {
-            //         events: {
-            //             connect: {
-            //                 id: event.id,
-            //             },
-            //         },
-            //     },
-            // });
-            // await this.prismaService.organizer.update({
-            //     where: { id: ogranizer.id },
-            //     data: {
-            //         events: {
-            //             set: [ogranizer.],
-            //         },
-            //     },
-            // });
 
             return event;
         } catch (error) {
@@ -128,6 +136,8 @@ export class EventService {
             include: {
                 artists: true,
                 ogranizer: true,
+                mapLocation: true,
+                poster: true,
             },
         });
         if (!event) {
@@ -172,11 +182,32 @@ export class EventService {
                 throw new NotFoundException("Event not found");
             }
 
+            let mapLocation = await this.prismaService.mapLocation.create({
+                data: {},
+            });
+
+            if (dto.mapLocation) {
+                mapLocation = await this.prismaService.mapLocation.create({
+                    data: {
+                        name: dto.mapLocation.name,
+                        address: dto.mapLocation.address,
+                        city: dto.mapLocation.city,
+                        country: dto.mapLocation.country,
+                        latitude: dto.mapLocation.latitude,
+                        longitude: dto.mapLocation.longitude,
+                    },
+                });
+            }
+
             const event = await this.prismaService.event.update({
                 where: { id: id },
                 data: {
                     name: dto.name,
-                    location: dto.location,
+                    mapLocation: {
+                        connect: {
+                            id: mapLocation.id,
+                        },
+                    },
                     description: dto.description,
                     poster: {
                         create: {

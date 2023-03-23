@@ -5,12 +5,14 @@ import { CreateEventDto } from "src/event/event.dto";
 import { MusicStyleDto } from "src/music-style/music-style.dto";
 import { CreateOrganizerDto } from "src/organizer/organizer.dto";
 import { CreateUserDto } from "../src/user/user.dto";
+import { MapLocation } from "../src/enums";
 
 class CreateUserDtoTest {
     nickName?: string;
     access_token?: string;
     tokenKey?: string;
     auth: AuthDto;
+    mapLocation?: MapLocation;
 }
 
 export abstract class TestData {
@@ -79,6 +81,14 @@ export abstract class TestData {
         auth: {
             email: "khazaar@gmail.com",
             password: "asdfasd_fasdg345",
+        },
+        mapLocation: {
+            name: "Bass house",
+            latitude: 55.5,
+            longitude: 55.5,
+            address: "Haneedusim 101",
+            city: "Haifa",
+            country: "Israel",
         },
     };
 

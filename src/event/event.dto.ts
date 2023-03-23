@@ -1,4 +1,5 @@
 import { IsNotEmpty, IsOptional } from "class-validator";
+import { MapLocation } from "../enums";
 
 export class CreateEventDto {
     @IsNotEmpty()
@@ -13,6 +14,8 @@ export class CreateEventDto {
     dateStart?: Date;
     @IsOptional()
     dateEnd?: Date;
+    @IsOptional()
+    mapLocation?: MapLocation;
 }
 
 export class UpdateEventDto {
@@ -28,4 +31,6 @@ export class UpdateEventDto {
     dateStart?: Date;
     @IsOptional()
     dateEnd?: Date;
+    @IsOptional()
+    mapLocation?: MapLocation;
 }
