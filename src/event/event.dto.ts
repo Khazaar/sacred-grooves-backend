@@ -1,12 +1,11 @@
 import { IsNotEmpty, IsOptional } from "class-validator";
+import { MapLocation } from "../enums";
 
 export class CreateEventDto {
     @IsNotEmpty()
     name: string;
     @IsNotEmpty()
     description: string;
-    @IsNotEmpty()
-    ogranizerId: number;
     @IsNotEmpty()
     artisitId: number;
     @IsNotEmpty()
@@ -15,21 +14,23 @@ export class CreateEventDto {
     dateStart?: Date;
     @IsOptional()
     dateEnd?: Date;
+    @IsOptional()
+    mapLocation?: MapLocation;
 }
 
-export class EditEventDto {
+export class UpdateEventDto {
     @IsOptional()
-    name: string;
+    name?: string;
     @IsOptional()
-    description: string;
+    description?: string;
     @IsOptional()
-    ogranizerId: number;
+    artisitId?: number;
     @IsOptional()
-    artisitId: number;
+    location?: string;
     @IsOptional()
-    location: string;
+    dateStart?: Date;
     @IsOptional()
-    dateStart: Date;
+    dateEnd?: Date;
     @IsOptional()
-    dateEnd: Date;
+    mapLocation?: MapLocation;
 }
