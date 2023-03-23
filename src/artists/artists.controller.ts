@@ -1,4 +1,3 @@
-import { GetUser } from "./../auth/decorator/getUserDecorator";
 import { ArtistsService } from "./artists.service";
 import {
     Controller,

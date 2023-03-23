@@ -139,6 +139,7 @@ export class EventService {
         accessPayload: AccessPayload,
         id: number,
         dto: UpdateEventDto,
+        posterUrl: string,
     ) {
         try {
             const user = await this.prismaService.user.findFirst({
@@ -177,6 +178,12 @@ export class EventService {
                     name: dto.name,
                     location: dto.location,
                     description: dto.description,
+                    poster: {
+                        create: {
+                            pictureS3Url: posterUrl,
+                            title: `Poster for ${dto.name}`,
+                        },
+                    },
                 },
             });
 

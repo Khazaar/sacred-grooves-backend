@@ -14,7 +14,6 @@ import {
     UploadedFile,
     UseGuards,
 } from "@nestjs/common";
-import { JwtGuard } from "../auth/guard";
 import { CreateEventDto, UpdateEventDto } from "./event.dto";
 import { AccessPayload } from "../authz/accessPayload.dto";
 import { GetAccessPayload } from "../authz/getAccessPayloadDecorator";
@@ -22,9 +21,10 @@ import { PermissionTypes } from "../authz/permissions.enum";
 import { Permissions } from "../authz/permissions.decorator";
 import { PermissionsGuard } from "../authz/permissions.guard";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
-import { CloudAwsService } from "src/cloud-aws/cloud-aws.service";
+import { CloudAwsService } from "../cloud-aws/cloud-aws.service";
+import { AuthGuard } from "@nestjs/passport";
 
-@UseGuards(JwtGuard, PermissionsGuard)
+@UseGuards(AuthGuard("jwt"), PermissionsGuard)
 @Controller("events")
 export class EventController {
     constructor(
@@ -42,24 +42,25 @@ export class EventController {
         @UploadedFile() file,
     ) {
         let posterUrl = "";
-        if (file) {
-            if (file.size > this.maxSizeInBytes) {
-                throw new BadRequestException(
-                    "File size exceeds the maximum allowed size",
-                );
-            }
-            try {
+        try {
+            if (file) {
+                if (file.size > this.maxSizeInBytes) {
+                    throw new BadRequestException(
+                        "File size exceeds the maximum allowed size",
+                    );
+                }
+
                 this.logger.log(file);
                 posterUrl = await this.cloudAwsService.uploadImageToS3AWS(file);
-                return await this.eventService.createEvent(
-                    accessPayload,
-                    dto,
-                    posterUrl,
-                );
-            } catch (error) {
-                this.logger.error(error);
-                throw new BadRequestException(error);
             }
+            return await this.eventService.createEvent(
+                accessPayload,
+                dto,
+                posterUrl,
+            );
+        } catch (error) {
+            this.logger.error(error);
+            throw new BadRequestException(error);
         }
     }
     @Get()
@@ -80,8 +81,30 @@ export class EventController {
         @GetAccessPayload() accessPayload: AccessPayload,
         @Param("id", ParseIntPipe) id: number,
         @Body() dto: UpdateEventDto,
+        @UploadedFile() file,
     ) {
-        return await this.eventService.updateEventById(accessPayload, id, dto);
+        let posterUrl = "";
+        try {
+            if (file) {
+                if (file.size > this.maxSizeInBytes) {
+                    throw new BadRequestException(
+                        "File size exceeds the maximum allowed size",
+                    );
+                }
+
+                this.logger.log(file);
+                posterUrl = await this.cloudAwsService.uploadImageToS3AWS(file);
+            }
+            return await this.eventService.updateEventById(
+                accessPayload,
+                id,
+                dto,
+                posterUrl,
+            );
+        } catch (error) {
+            this.logger.error(error);
+            throw new BadRequestException(error);
+        }
     }
 
     @Permissions(PermissionTypes.rudEvents)

@@ -11,7 +11,6 @@ import * as argon from "argon2";
 import { AccessPayload } from "../authz/accessPayload.dto";
 import { Prisma } from "@prisma/client";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
-import { CloudAwsService } from "../cloud-aws/cloud-aws.service";
 
 @Injectable()
 export class UserService {
@@ -19,7 +18,6 @@ export class UserService {
         @Inject(WINSTON_MODULE_NEST_PROVIDER)
         private readonly logger: LoggerService,
         private readonly prismaService: PrismaService,
-        private readonly cloudAwsService: CloudAwsService,
     ) {}
 
     public async createUser(
@@ -67,7 +65,11 @@ export class UserService {
         return user;
     }
 
-    public async editUser(accessPayload: AccessPayload, data: EditUserDto) {
+    public async editUser(
+        accessPayload: AccessPayload,
+        dto: EditUserDto,
+        avatarUrl: string,
+    ) {
         let user = await this.prismaService.user.findFirst({
             where: { auth0sub: accessPayload.sub },
         });
@@ -77,7 +79,20 @@ export class UserService {
 
         user = await this.prismaService.user.update({
             where: { auth0sub: accessPayload.sub },
-            data,
+            data: {
+                email: dto.email,
+                nickName: dto.nickName,
+                auth0sub: accessPayload.sub,
+                avatar: {
+                    create: {
+                        pictureS3Url: avatarUrl,
+                        title: `Avatar for ${dto.nickName}`,
+                    },
+                },
+            },
+            include: {
+                avatar: true,
+            },
         });
         delete user.passwordHash;
         return user;

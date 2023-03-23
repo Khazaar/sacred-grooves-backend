@@ -44,24 +44,21 @@ export class UserController {
         @UploadedFile() file,
     ) {
         let avatarUrl = "";
-        if (file) {
-            if (file.size > this.maxSizeInBytes) {
-                throw new BadRequestException(
-                    "File size exceeds the maximum allowed size",
-                );
-            }
-            try {
+        try {
+            if (file) {
+                if (file.size > this.maxSizeInBytes) {
+                    throw new BadRequestException(
+                        "File size exceeds the maximum allowed size",
+                    );
+                }
+
                 this.logger.log(file);
                 avatarUrl = await this.cloudAwsService.uploadImageToS3AWS(file);
-                return this.userService.createUser(
-                    dto,
-                    accessPayload,
-                    avatarUrl,
-                );
-            } catch (error) {
-                this.logger.error(error);
-                throw new InternalServerErrorException(error);
             }
+            return this.userService.createUser(dto, accessPayload, avatarUrl);
+        } catch (error) {
+            this.logger.error(error);
+            throw new InternalServerErrorException(error);
         }
     }
 
@@ -79,8 +76,28 @@ export class UserController {
     public async editMe(
         @GetAccessPayload() accessPayload: AccessPayload,
         @Body() dto: EditUserDto,
+        @UploadedFile() file,
     ) {
-        return await this.userService.editUser(accessPayload, dto);
+        let avatarUrl = "";
+        try {
+            if (file) {
+                if (file.size > this.maxSizeInBytes) {
+                    throw new BadRequestException(
+                        "File size exceeds the maximum allowed size",
+                    );
+                }
+                this.logger.log(file);
+                avatarUrl = await this.cloudAwsService.uploadImageToS3AWS(file);
+            }
+            return await this.userService.editUser(
+                accessPayload,
+                dto,
+                avatarUrl,
+            );
+        } catch (error) {
+            this.logger.error(error);
+            throw new InternalServerErrorException(error);
+        }
     }
 
     @Get("email")
