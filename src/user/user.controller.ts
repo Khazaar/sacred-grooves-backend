@@ -78,6 +78,7 @@ export class UserController {
         @Body() dto: EditUserDto,
         @UploadedFile() file,
     ) {
+        console.log(dto);
         let avatarUrl = "";
         try {
             if (file) {

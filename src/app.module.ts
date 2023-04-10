@@ -37,7 +37,7 @@ import { MulterModule } from "@nestjs/platform-express";
         MusicStyleModule,
         WinstonModule.forRoot({
             silent: false, // Enable logger here
-            level: "error",
+            level: "info",
             format: winston.format.errors({ stack: true }),
             transports: [
                 new winston.transports.Console({

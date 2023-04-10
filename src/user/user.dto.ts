@@ -2,7 +2,7 @@ import { ArrayMinSize, IsArray, IsNotEmpty, IsOptional } from "class-validator";
 import { MapLocation } from "../enums";
 
 export class CreateUserDto {
-    @IsNotEmpty()
+    @IsOptional()
     password: string;
     @IsNotEmpty()
     email: string;
