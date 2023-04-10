@@ -1,13 +1,19 @@
-import { IsNotEmpty, IsOptional } from "class-validator";
+import { IsArray, IsNotEmpty, IsOptional } from "class-validator";
 
 export class CreateArtistDto {
+    @IsArray()
     @IsNotEmpty()
-    userId: number;
-    @IsOptional()
-    style: string;
+    artistTypes: string[];
+    @IsArray()
+    @IsNotEmpty()
+    musicStyles: string[];
 }
 
-export class EditArtistDto {
+export class UpdateArtistDto {
+    @IsArray()
     @IsOptional()
-    style?: string;
+    artistTypes?: string[];
+    @IsArray()
+    @IsOptional()
+    musicSlyles?: string[];
 }

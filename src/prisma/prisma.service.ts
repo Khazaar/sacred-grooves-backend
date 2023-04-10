@@ -13,7 +13,20 @@ export class PrismaService extends PrismaClient {
             },
         });
     }
-    public cleadDb() {
-        this.$transaction([this.artist.deleteMany(), this.user.deleteMany()]);
+
+    public async cleadDb() {
+        await this.$transaction([
+            this.artist.deleteMany(),
+            this.user.deleteMany(),
+            this.supportTeam.deleteMany(),
+            this.visitor.deleteMany(),
+            this.event.deleteMany(),
+            this.moderator.deleteMany(),
+            this.artistType.deleteMany(),
+            this.musicStyle.deleteMany(),
+            this.supportTeam.deleteMany(),
+            this.picture.deleteMany(),
+            this.mapLocation.deleteMany(),
+        ]);
     }
 }
