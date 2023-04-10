@@ -127,6 +127,9 @@ export class UserService {
                 mapLocation: {
                     connect: { id: mapLocation.id },
                 },
+                firstName: dto.firstName,
+                lastName: dto.lastName,
+                telegramName: dto.telegramName,
             },
             include: {
                 avatar: true,
