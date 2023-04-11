@@ -19,7 +19,7 @@ export class ArtistTypeService {
         try {
             const artistType = await this.prismaService.artistType.create({
                 data: {
-                    artisitTypeName: dto.artisitTypeName,
+                    artistTypeName: dto.artistTypeName,
                 },
             });
             return artistType;
@@ -44,7 +44,7 @@ export class ArtistTypeService {
         const artistType = await this.prismaService.artistType.update({
             where: { id: artistTypeId },
             data: {
-                artisitTypeName: dto.artisitTypeName,
+                artistTypeName: dto.artistTypeName,
             },
         });
         return artistType;

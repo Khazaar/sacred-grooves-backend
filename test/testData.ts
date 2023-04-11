@@ -18,34 +18,34 @@ class CreateUserDtoTest {
 export abstract class TestData {
     public static artistTypes: CreateArtistTypeDto[] = [
         {
-            artisitTypeName: "DJ",
+            artistTypeName: "DJ",
         },
         {
-            artisitTypeName: "Singer",
+            artistTypeName: "Singer",
         },
         {
-            artisitTypeName: "Percussion player",
+            artistTypeName: "Percussion player",
         },
         {
-            artisitTypeName: "Guitar player",
+            artistTypeName: "Guitar player",
         },
         {
-            artisitTypeName: "Electronic music producer",
+            artistTypeName: "Electronic music producer",
         },
         {
-            artisitTypeName: "Painter",
+            artistTypeName: "Painter",
         },
         {
-            artisitTypeName: "Ceremony leader",
+            artistTypeName: "Ceremony leader",
         },
         {
-            artisitTypeName: "Dancer",
+            artistTypeName: "Dancer",
         },
         {
-            artisitTypeName: "Face painter",
+            artistTypeName: "Face painter",
         },
         {
-            artisitTypeName: "Type to edit",
+            artistTypeName: "Type to edit",
         },
     ];
     public static musicStyles: MusicStyleDto[] = [
@@ -119,8 +119,8 @@ export abstract class TestData {
     // Artist
     public static createArtistDtoKhazaar: CreateArtistDto = {
         artistTypes: [
-            TestData.artistTypes[0].artisitTypeName,
-            TestData.artistTypes[1].artisitTypeName,
+            TestData.artistTypes[0].artistTypeName,
+            TestData.artistTypes[1].artistTypeName,
         ],
         musicStyles: [
             TestData.musicStyles[0].musicStyleName,

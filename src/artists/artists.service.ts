@@ -1,20 +1,24 @@
 import {
     Body,
+    Inject,
     Injectable,
     InternalServerErrorException,
+    LoggerService,
     NotFoundException,
 } from "@nestjs/common";
 import { AccessPayload } from "src/authz/accessPayload.dto";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateArtistDto, UpdateArtistDto } from "./artist.dto";
+import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 
 @Injectable()
 export class ArtistsService {
-    constructor(private readonly prismaService: PrismaService) {}
-    public async createArtist(
-        accessPayload: AccessPayload,
-        dto: CreateArtistDto,
-    ) {
+    constructor(
+        private readonly prismaService: PrismaService,
+        @Inject(WINSTON_MODULE_NEST_PROVIDER)
+        private readonly logger: LoggerService,
+    ) {}
+    public async createArtist(accessPayload: AccessPayload) {
         try {
             const user = await this.prismaService.user.findFirst({
                 where: { auth0sub: accessPayload.sub },
@@ -26,22 +30,17 @@ export class ArtistsService {
             const artist = await this.prismaService.artist.create({
                 data: {
                     userId: user.id,
-                    artistTypes: {
-                        connect:
-                            dto.artistTypes.map((artistType) => {
-                                return { artisitTypeName: artistType };
-                            }) || [],
-                    },
+                    musicSlyles: {},
+                    artistTypes: {},
                 },
                 include: {
                     user: true,
-                    artistTypes: true,
                 },
             });
             await this.prismaService.user.update({
                 where: { id: user.id },
                 data: {
-                    Artist: {
+                    artist: {
                         connect: {
                             id: artist.id,
                         },
@@ -74,19 +73,18 @@ export class ArtistsService {
             if (!user) {
                 throw new NotFoundException("User not found");
             }
-
             const artist = await this.prismaService.artist.update({
                 where: { userId: user.id },
                 data: {
                     artistTypes: {
-                        connect:
+                        set:
                             dto.artistTypes?.map((artistType) => {
-                                return { artisitTypeName: artistType };
+                                return { artistTypeName: artistType };
                             }) || [],
                     },
                     musicSlyles: {
-                        connect:
-                            dto.musicSlyles?.map((musicSlyle) => {
+                        set:
+                            dto.musicStyles?.map((musicSlyle) => {
                                 return { musicStyleName: musicSlyle };
                             }) || [],
                     },
@@ -94,6 +92,7 @@ export class ArtistsService {
                 include: {
                     user: true,
                     artistTypes: true,
+                    musicSlyles: true,
                 },
             });
 

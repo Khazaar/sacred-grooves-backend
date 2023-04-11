@@ -20,11 +20,11 @@ model User {
   email           String       @unique
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
-  Artist          Artist?
-  Organizer       Organizer?
-  Visitor         Visitor?
-  Moderator       Moderator?
-  SupportTeam     SupportTeam?
+  artist          Artist?
+  organizer       Organizer?
+  visitor         Visitor?
+  moderator       Moderator?
+  supportTeam     SupportTeam?
   mapLocation     MapLocation? @relation(fields: [locationId], references: [id])
   roles           String[]
   avatar          Picture?     @relation(fields: [avatarPictureId], references: [id])
@@ -40,6 +40,7 @@ model Artist {
   isApproved  Boolean      @default(false)
   artistTypes ArtistType[]
   musicSlyles MusicStyle[]
+
 }
 
 model Organizer {
@@ -49,6 +50,7 @@ model Organizer {
   mainLocation String?
   events       Event[]
   isApproved   Boolean @default(false)
+  @@map("organizer")
 }
 
 model Visitor {
@@ -63,8 +65,8 @@ model Event {
   description     String
   ogranizerId     Int
   ogranizer       Organizer    @relation(fields: [ogranizerId], references: [id], onDelete: Cascade)
-  artisitId       Int
-  artists         Artist       @relation(fields: [artisitId], references: [id], onDelete: Cascade)
+  artistId       Int
+  artists         Artist       @relation(fields: [artistId], references: [id], onDelete: Cascade)
   visitorsId      Int?
   mapLocation     MapLocation? @relation(fields: [locationId], references: [id])
   dateStart       DateTime?
@@ -85,7 +87,7 @@ model ArtistType {
   id              Int     @id @default(autoincrement())
   artistId        Int?
   artist          Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  artisitTypeName String  @unique
+  artistTypeName String  @unique
 }
 
 model MusicStyle {

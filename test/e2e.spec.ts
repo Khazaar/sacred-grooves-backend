@@ -197,7 +197,7 @@ describe("App auth", () => {
                         })
                         .withBody(artistType)
                         .expectStatus(201)
-                        .expectBodyContains(artistType.artisitTypeName)
+                        .expectBodyContains(artistType.artistTypeName)
                         .stores("artistTypeModId", "id");
                 }
             });
@@ -243,13 +243,13 @@ describe("App auth", () => {
                     .expectStatus(200)
                     .expectBodyContains(
                         TestData.artistTypes[TestData.artistTypes.length - 1]
-                            .artisitTypeName,
+                            .artistTypeName,
                     );
             });
 
             it("Should edit artist type by Id with cud:artistTypes permissions", async () => {
                 const editArtistTypeDto: CreateArtistTypeDto = {
-                    artisitTypeName: "Type to Delete",
+                    artistTypeName: "Type to Delete",
                 };
                 return await pactum
                     .spec()
@@ -263,7 +263,7 @@ describe("App auth", () => {
                     .withPathParams({ id: `$S{artistTypeModId}` })
                     .patch("artist-types/{id}")
                     .expectStatus(200)
-                    .expectBodyContains(editArtistTypeDto.artisitTypeName);
+                    .expectBodyContains(editArtistTypeDto.artistTypeName);
             });
 
             it("Should delete artist type by Id with cud:artistTypes permissions", async () => {
@@ -453,7 +453,7 @@ describe("App auth", () => {
             });
             it("Should update my artist profile", async () => {
                 const updateArtistDto: UpdateArtistDto = {
-                    artistTypes: [TestData.artistTypes[3].artisitTypeName],
+                    artistTypes: [TestData.artistTypes[3].artistTypeName],
                 };
                 return await pactum
                     .spec()

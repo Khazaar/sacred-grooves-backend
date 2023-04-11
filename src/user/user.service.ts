@@ -47,6 +47,8 @@ export class UserService {
                 email: dto.email,
                 nickName: dto.nickName,
                 auth0sub: accessPayload.sub,
+                firstName: dto.firstName,
+                lastName: dto.lastName,
                 avatar: {
                     create: {
                         pictureS3Url: avatarUrl,
@@ -143,6 +145,19 @@ export class UserService {
         try {
             const user = await this.prismaService.user.findFirst({
                 where: { auth0sub: accessPayload.sub },
+                include: {
+                    avatar: true,
+                    mapLocation: true,
+                    artist: {
+                        select: {
+                            artistTypes: true,
+                            musicSlyles: true,
+                        },
+                    },
+                    organizer: true,
+                    supportTeam: true,
+                    visitor: true,
+                },
             });
             if (!user) {
                 throw new NotFoundException("User not found");

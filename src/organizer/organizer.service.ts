@@ -32,7 +32,7 @@ export class OrganizerService {
         await this.prismaService.user.update({
             where: { id: user.id },
             data: {
-                Organizer: {
+                organizer: {
                     connect: {
                         id: organizer.id,
                     },

@@ -9,6 +9,7 @@ import {
     ParseIntPipe,
     Put,
     Delete,
+    Patch,
 } from "@nestjs/common";
 import { CreateArtistDto, UpdateArtistDto } from "./artist.dto";
 import { AuthGuard } from "@nestjs/passport";
@@ -24,15 +25,14 @@ export class ArtistsController {
     @Post()
     public async createArtist(
         @GetAccessPayload() accessPayload: AccessPayload,
-        @Body() dto: CreateArtistDto,
     ) {
-        return await this.artistsService.createArtist(accessPayload, dto);
+        return await this.artistsService.createArtist(accessPayload);
     }
     @Get()
     public async getAllArtists() {
         return await this.artistsService.getAllArtists();
     }
-    @Put("me")
+    @Patch("me")
     public async updateMe(
         @GetAccessPayload() accessPayload: AccessPayload,
         @Body() dto: UpdateArtistDto,

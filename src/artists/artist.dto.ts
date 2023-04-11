@@ -15,5 +15,5 @@ export class UpdateArtistDto {
     artistTypes?: string[];
     @IsArray()
     @IsOptional()
-    musicSlyles?: string[];
+    musicStyles?: string[];
 }
