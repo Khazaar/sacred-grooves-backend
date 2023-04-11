@@ -41,6 +41,7 @@ export class OrganizerService {
         });
         return organizer;
     }
+    //test
 
     public async updateOrganizer(
         usaccessPayloadrId: AccessPayload,
