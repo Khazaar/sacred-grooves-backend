@@ -61,6 +61,7 @@ export class ArtistsService {
         });
         return artists;
     }
+    //test
 
     public async updateArtistMe(
         accessPayload: AccessPayload,
