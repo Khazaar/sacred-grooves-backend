@@ -34,7 +34,7 @@ export class UserController {
         private readonly cloudAwsService: CloudAwsService,
     ) {}
 
-    public maxSizeInBytes = 3 * 1024 * 1024; // 2 MB
+    public maxSizeInBytes = 5 * 1024 * 1024; // 2 MB
 
     @Post()
     @UseInterceptors(FileInterceptor("file"))

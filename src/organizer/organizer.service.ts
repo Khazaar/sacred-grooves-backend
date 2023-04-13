@@ -10,10 +10,7 @@ import { CreateOrganizerDto, UpdateOrganizerDto } from "./organizer.dto";
 @Injectable()
 export class OrganizerService {
     constructor(private readonly prismaService: PrismaService) {}
-    public async createOrganizer(
-        usaccessPayloadrId: AccessPayload,
-        dto: CreateOrganizerDto,
-    ) {
+    public async createOrganizer(usaccessPayloadrId: AccessPayload) {
         const user = await this.prismaService.user.findFirst({
             where: { auth0sub: usaccessPayloadrId.sub },
         });
@@ -23,7 +20,6 @@ export class OrganizerService {
         const organizer = await this.prismaService.organizer.create({
             data: {
                 userId: user.id,
-                mainLocation: dto.mainLocation,
             },
             include: {
                 user: true,

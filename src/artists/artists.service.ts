@@ -30,7 +30,7 @@ export class ArtistsService {
             const artist = await this.prismaService.artist.create({
                 data: {
                     userId: user.id,
-                    musicSlyles: {},
+                    musicStyles: {},
                     artistTypes: {},
                 },
                 include: {
@@ -83,7 +83,7 @@ export class ArtistsService {
                                 return { artistTypeName: artistType };
                             }) || [],
                     },
-                    musicSlyles: {
+                    musicStyles: {
                         set:
                             dto.musicStyles?.map((musicSlyle) => {
                                 return { musicStyleName: musicSlyle };
@@ -93,7 +93,7 @@ export class ArtistsService {
                 include: {
                     user: true,
                     artistTypes: true,
-                    musicSlyles: true,
+                    musicStyles: true,
                 },
             });
 

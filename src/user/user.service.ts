@@ -151,7 +151,7 @@ export class UserService {
                     artist: {
                         select: {
                             artistTypes: true,
-                            musicSlyles: true,
+                            musicStyles: true,
                         },
                     },
                     organizer: true,

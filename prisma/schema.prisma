@@ -39,7 +39,7 @@ model Artist {
   events      Event[]
   isApproved  Boolean      @default(false)
   artistTypes ArtistType[]
-  musicSlyles MusicStyle[]
+  musicStyles MusicStyle[]
 
 }
 
