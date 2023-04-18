@@ -5,28 +5,37 @@ import {
 } from "@nestjs/common";
 import { AccessPayload } from "src/authz/accessPayload.dto";
 import { PrismaService } from "../prisma/prisma.service";
-import { CreateOrganizerDto, UpdateOrganizerDto } from "./organizer.dto";
+import { OrganizerDto } from "./organizer.dto";
 
 @Injectable()
 export class OrganizerService {
     constructor(private readonly prismaService: PrismaService) {}
-    public async createOrganizer(usaccessPayloadrId: AccessPayload) {
-        const user = await this.prismaService.user.findFirst({
-            where: { auth0sub: usaccessPayloadrId.sub },
+    public async createOrganizer(
+        accessPayload: AccessPayload,
+        dto: OrganizerDto,
+    ) {
+        const profile = await this.prismaService.profile.findUnique({
+            where: { auth0sub: accessPayload.sub },
         });
-        if (!user) {
-            throw new NotFoundException("User not found");
+        if (!profile) {
+            throw new NotFoundException("Profile not found");
         }
         const organizer = await this.prismaService.organizer.create({
             data: {
-                userId: user.id,
+                profile: {
+                    connect: {
+                        id: profile.id,
+                    },
+                },
+                mainLocation: dto.mainLocation,
+                events: {},
             },
             include: {
-                user: true,
+                profile: true,
             },
         });
-        await this.prismaService.user.update({
-            where: { id: user.id },
+        await this.prismaService.profile.update({
+            where: { id: profile.id },
             data: {
                 organizer: {
                     connect: {
@@ -40,23 +49,23 @@ export class OrganizerService {
     //test
 
     public async updateOrganizer(
-        usaccessPayloadrId: AccessPayload,
-        dto: UpdateOrganizerDto,
+        accessPayload: AccessPayload,
+        dto: OrganizerDto,
     ) {
         try {
-            const user = await this.prismaService.user.findFirst({
-                where: { auth0sub: usaccessPayloadrId.sub },
+            const profile = await this.prismaService.profile.findUnique({
+                where: { auth0sub: accessPayload.sub },
             });
-            if (!user) {
-                throw new NotFoundException("User not found");
+            if (!profile) {
+                throw new NotFoundException("Profile not found");
             }
             const organizer = await this.prismaService.organizer.update({
-                where: { userId: user.id },
+                where: { profileId: profile.id },
                 data: {
                     mainLocation: dto.mainLocation,
                 },
                 include: {
-                    user: true,
+                    profile: true,
                 },
             });
             return organizer;
@@ -68,7 +77,7 @@ export class OrganizerService {
     public async getAllOrganizers() {
         const organizer = await this.prismaService.organizer.findMany({
             include: {
-                user: true,
+                profile: true,
             },
         });
         return organizer;

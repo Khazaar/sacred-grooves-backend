@@ -3,28 +3,21 @@ import { Test } from "@nestjs/testing";
 import { PrismaService } from "../src/prisma/prisma.service";
 import { AppModule } from "../src/app.module";
 import * as pactum from "pactum";
-import { CreateUserDto, EditUserDto } from "../src/user/user.dto";
-import { TestData } from "./testData";
+import { UserDto } from "../src/user/user.dto";
+import { ProfileDtoTest, TestData } from "./testData";
 import * as dotenv from "dotenv";
 import * as fs from "fs";
 import { CreateArtistTypeDto } from "src/artist-type/artist-type.dto";
 import { MusicStyleDto } from "src/music-style/music-style.dto";
-import { CreateArtistDto, UpdateArtistDto } from "src/artists/artist.dto";
-import { UpdateOrganizerDto } from "src/organizer/organizer.dto";
-import { CreateEventDto, UpdateEventDto } from "../src/event/event.dto";
+import { ArtistDto } from "src/artists/artist.dto";
+import { OrganizerDto } from "src/organizer/organizer.dto";
+import { EventDto } from "../src/event/event.dto";
 
-describe("App auth", () => {
+describe("e2e tests", () => {
     dotenv.config();
     let app: INestApplication;
     let prismaService: PrismaService;
     const localURL = "http://localhost:3333/";
-
-    const users = [
-        TestData.createUserDtoKhazaar,
-        TestData.createUserDtoMari,
-        TestData.createUserDtoKaya,
-        TestData.createUserDtoPeter,
-    ];
 
     beforeAll(async () => {
         const moduleRef = await Test.createTestingModule({
@@ -45,73 +38,81 @@ describe("App auth", () => {
     describe("e2e tests", () => {
         describe("SignIn / get auth token", () => {
             it("Should get tokens from Auth0", async () => {
-                for (const usr of users) {
-                    usr.tokenKey =
-                        "userAt_" + usr.auth.email.replace("@gmail.com", "");
+                for (const profile of TestData.profiles) {
                     await pactum
                         .spec()
                         .post(`${process.env.AUTH0_ISSUER_URL}oauth/token`)
                         .withBody({
                             grant_type: "password",
-                            username: usr.auth.email,
-                            password: usr.auth.password,
+                            username: profile.email,
+                            password: profile.password,
                             audience: process.env.AUTH0_AUDIENCE,
                             scope: "profile permissions",
                             client_id: process.env.AUTH0_CLIENT_ID,
                             client_secret: process.env.AUTH0_CLIENT_SECRET,
                         })
                         .expectStatus(200)
-                        .stores(usr.tokenKey, "access_token");
+                        .stores(profile.tokenKey, "access_token");
                 }
             }, 10000);
         });
-
-        describe("Users CRUD", () => {
+        describe("Profiles CRUD", () => {
             pactum.request.setBaseUrl(localURL);
+            it("Should create profiles in DB", async () => {
+                for (const profile of TestData.profiles) {
+                    await pactum
+                        .spec()
+                        .post("profiles")
+                        .withHeaders({
+                            Authorization:
+                                "Bearer $S{" + profile.tokenKey + "}",
+                        })
+                        .expectStatus(201);
+                }
+            });
+        });
+        describe("Users CRUD", () => {
             it("Should create users in DB", async () => {
-                for (const usr of users) {
-                    const createUser: CreateUserDto = {
+                for (const usr of TestData.users) {
+                    const createUser: UserDto = {
                         nickName: usr.nickName,
-                        password: usr.auth.password,
-                        email: usr.auth.email,
+                        email: usr.email,
                     };
                     usr.mapLocation &&
                         (createUser.mapLocation = usr.mapLocation);
-                    if (usr != TestData.createUserDtoKhazaar) {
-                        await pactum
-                            .spec()
-                            .post("users")
-                            .withBody(createUser)
-                            .withHeaders({
-                                Authorization:
-                                    "Bearer $S{" + usr.tokenKey + "}",
-                            })
-                            .expectStatus(201);
-                    } else {
-                        const form = new FormData();
-                        const avatarPath = "test/images/Khazaar_avatar.jpg";
-                        const fileName = "Khazaar_avatar.jpg";
-                        const avatarFile = fs.readFileSync(avatarPath);
 
-                        await pactum
-                            .spec()
-                            .post("users")
-                            .withBody(createUser)
-                            .withHeaders({
-                                Authorization:
-                                    "Bearer $S{" + usr.tokenKey + "}",
-                            })
-                            .expectBodyContains(usr.mapLocation.address)
-                            .expectStatus(201);
-                    }
+                    await pactum
+                        .spec()
+                        .post("users")
+                        .withBody(createUser)
+                        .withHeaders({
+                            Authorization: "Bearer $S{" + usr.tokenKey + "}",
+                        })
+                        .expectStatus(201);
                 }
+            });
+
+            it("Should upload avatar", async () => {
+                // const form = new FormData();
+                // const avatarPath = "test/images/Khazaar_avatar.jpg";
+                // const fileName = "Khazaar_avatar.jpg";
+                // const avatarFile = fs.readFileSync(avatarPath);
+                // form.append('file', avatarFile, { filename: 'a.txt' });
+                // await pactum
+                //     .spec()
+                //     .post("users")
+                //     .withBody(createUser)
+                //     .withHeaders({
+                //         Authorization: "Bearer $S{" + usr.tokenKey + "}",
+                //     })
+                //     .withMultiPartFormData(form)
+                //     .expectStatus(201);
             });
 
             it("Should get all users from DB with read:users permissions", async () => {
                 return await pactum
                     .spec()
                     .get("users")
-
                     .withHeaders({
                         Authorization:
                             "Bearer $S{" +
@@ -124,7 +125,6 @@ describe("App auth", () => {
                 return await pactum
                     .spec()
                     .get("users")
-
                     .withHeaders({
                         Authorization:
                             "Bearer $S{" +
@@ -133,7 +133,6 @@ describe("App auth", () => {
                     })
                     .expectStatus(403);
             });
-
             it("Should get user from DB by token (get me)", async () => {
                 return await pactum
                     .spec()
@@ -147,9 +146,8 @@ describe("App auth", () => {
                     .expectStatus(200)
                     .expectBodyContains(TestData.createUserDtoKaya.nickName);
             });
-
             it("Should patch user in DB by token (patch me)", async () => {
-                const editUser: EditUserDto = {
+                const editUser: UserDto = {
                     nickName: "Kaya Edited",
                 };
                 return await pactum
@@ -165,7 +163,6 @@ describe("App auth", () => {
                     .expectStatus(200)
                     .expectBodyContains(editUser.nickName);
             });
-
             it("Should get user from DB by email with read:users permissions", async () => {
                 return await pactum
                     .spec()
@@ -176,7 +173,7 @@ describe("App auth", () => {
                             "}",
                     })
                     .withBody({
-                        email: TestData.createUserDtoKhazaar.auth.email,
+                        email: TestData.profileKhazaar.email,
                     })
                     .get("users/email")
                     .expectStatus(200)
@@ -452,12 +449,12 @@ describe("App auth", () => {
                     .expectJsonLength(1);
             });
             it("Should update my artist profile", async () => {
-                const updateArtistDto: UpdateArtistDto = {
+                const updateArtistDto: ArtistDto = {
                     artistTypes: [TestData.artistTypes[3].artistTypeName],
                 };
                 return await pactum
                     .spec()
-                    .put("artists/me")
+                    .patch("artists/me")
                     .withHeaders({
                         Authorization:
                             "Bearer $S{" +
@@ -468,18 +465,33 @@ describe("App auth", () => {
                     .expectStatus(200)
                     .expectBodyContains(updateArtistDto.artistTypes[0]);
             });
-            // it("Should delete my artist profile", async () => {
-            //     return await pactum
-            //         .spec()
-            //         .delete("artists/me")
-            //         .withHeaders({
-            //             Authorization:
-            //                 "Bearer $S{" +
-            //                 TestData.createUserDtoKhazaar.tokenKey +
-            //                 "}",
-            //         })
-            //         .expectStatus(200);
-            // });
+            it("Should delete my artist profile", async () => {
+                await pactum
+                    .spec()
+                    .delete("artists/me")
+                    .withHeaders({
+                        Authorization:
+                            "Bearer $S{" +
+                            TestData.createUserDtoKhazaar.tokenKey +
+                            "}",
+                    })
+                    .expectStatus(200);
+                return await pactum
+                    .spec()
+                    .post("artists/")
+                    .withHeaders({
+                        Authorization:
+                            "Bearer $S{" +
+                            TestData.createUserDtoKhazaar.tokenKey +
+                            "}",
+                    })
+                    .withBody(TestData.createArtistDtoKhazaar)
+                    .stores("khazaarArtistId", "id")
+                    .expectStatus(201)
+                    .expectBodyContains(
+                        TestData.createArtistDtoKhazaar.artistTypes[0],
+                    );
+            });
         });
         describe("Organizer CRUD", () => {
             it("Should commit me as Organizer", async () => {
@@ -495,15 +507,17 @@ describe("App auth", () => {
                     .withBody(TestData.createOrganizerDtoMari)
                     .stores("mariOrganizerId", "id")
                     .expectStatus(201)
-                    .expectBodyContains(TestData.createUserDtoMari.nickName);
+                    .expectBodyContains(
+                        TestData.createOrganizerDtoMari.mainLocation,
+                    );
             });
             it("Should update my organizer profile", async () => {
-                const updateOrganizerDto: UpdateOrganizerDto = {
+                const updateOrganizerDto: OrganizerDto = {
                     mainLocation: "New organizer location",
                 };
                 return pactum
                     .spec()
-                    .put("organizers/me")
+                    .patch("organizers/me")
                     .withHeaders({
                         Authorization:
                             "Bearer $S{" +
@@ -529,7 +543,7 @@ describe("App auth", () => {
             });
         });
         describe("Event CRUD", () => {
-            const createEventDto1: CreateEventDto = {
+            const createEventDto1: EventDto = {
                 name: "Test Event",
                 artisitId: pactum.parse(`$S{khazaarArtistId}`),
                 location: "Haifa",
@@ -543,27 +557,13 @@ describe("App auth", () => {
                     country: "France",
                 },
             };
-            const createEventDto2: CreateEventDto = {
+            const createEventDto2: EventDto = {
                 name: "Test Event To Delete",
                 artisitId: pactum.parse(`$S{khazaarArtistId}`),
                 location: "Haifa",
                 description: "Nice event",
             };
             it("Should create event for Organizer", async () => {
-                //  Create event2
-                await pactum
-                    .spec()
-                    .post("events")
-                    .withHeaders({
-                        Authorization:
-                            "Bearer $S{" +
-                            TestData.createUserDtoMari.tokenKey +
-                            "}",
-                    })
-                    .withBody(createEventDto1)
-                    .stores("mariEventId1", "id")
-                    .expectStatus(201);
-
                 return pactum
                     .spec()
                     .post("events")
@@ -576,7 +576,8 @@ describe("App auth", () => {
                     .withBody(createEventDto1)
                     .stores("mariEventId2", "id")
                     .expectStatus(201)
-                    .expectBodyContains(createEventDto2.description);
+                    .expectBodyContains(createEventDto1.description)
+                    .inspect();
             });
             it("Should not create event for not Organizer", async () => {
                 return (
@@ -596,7 +597,20 @@ describe("App auth", () => {
             });
 
             it("Should update event by ID for Organizer", async () => {
-                const updateEventDto: UpdateEventDto = {
+                //  Create event2
+                await pactum
+                    .spec()
+                    .post("events")
+                    .withHeaders({
+                        Authorization:
+                            "Bearer $S{" +
+                            TestData.createUserDtoMari.tokenKey +
+                            "}",
+                    })
+                    .withBody(createEventDto1)
+                    .stores("mariEventId1", "id")
+                    .expectStatus(201);
+                const updateEventDto: EventDto = {
                     name: "New event name",
                     description: "New event description",
                 };
@@ -615,7 +629,7 @@ describe("App auth", () => {
                     .expectBodyContains(updateEventDto.name);
             });
 
-            it("Should get all pending events with rud:evenst permission", async () => {
+            it("Should get all pending events with rud:events permission", async () => {
                 return pactum
                     .spec()
                     .get("events/pending")

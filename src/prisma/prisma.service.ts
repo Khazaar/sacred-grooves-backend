@@ -21,12 +21,13 @@ export class PrismaService extends PrismaClient {
             this.supportTeam.deleteMany(),
             this.visitor.deleteMany(),
             this.event.deleteMany(),
-            this.moderator.deleteMany(),
             this.artistType.deleteMany(),
             this.musicStyle.deleteMany(),
             this.supportTeam.deleteMany(),
             this.picture.deleteMany(),
             this.mapLocation.deleteMany(),
+            this.organizer.deleteMany(),
+            this.profile.deleteMany(),
         ]);
     }
 }

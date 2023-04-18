@@ -26,6 +26,7 @@ import { DevtestController } from "./devtest/devtest.controller";
 import { DevtestModule } from "./devtest/devtest.module";
 import * as winston from "winston";
 import { MulterModule } from "@nestjs/platform-express";
+import { ProfileModule } from "./profile/profile.module";
 
 @Module({
     imports: [
@@ -68,6 +69,8 @@ import { MulterModule } from "@nestjs/platform-express";
         MulterModule.register({
             dest: "./uploads",
         }),
+
+        ProfileModule,
     ],
     controllers: [
         UserController,

@@ -1,4 +1,4 @@
-import { CreateEventDto, UpdateEventDto } from "./event.dto";
+import { EventDto } from "./event.dto";
 import {
     BadRequestException,
     HttpStatus,
@@ -22,21 +22,20 @@ export class EventService {
     ) {}
     public async createEvent(
         accessPayload: AccessPayload,
-        dto: CreateEventDto,
+        dto: EventDto,
         posterUrl: string,
     ) {
         try {
-            const user = await this.prismaService.user.findFirst({
+            this.logger.log("DTOOO", dto);
+            const profile = await this.prismaService.profile.findUnique({
                 where: { auth0sub: accessPayload.sub },
             });
-
-            if (!user) {
-                this.logger.error("User not found");
-                throw new NotFoundException("User not found");
+            if (!profile) {
+                throw new NotFoundException("Profile not found");
             }
 
             const ogranizer = await this.prismaService.organizer.findFirst({
-                where: { userId: user.id },
+                where: { profileId: profile.id },
             });
 
             if (!ogranizer) {
@@ -110,6 +109,8 @@ export class EventService {
                 },
             });
 
+            this.logger.log("Eenttt", event);
+
             return event;
         } catch (error) {
             if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -148,20 +149,19 @@ export class EventService {
     public async updateEventById(
         accessPayload: AccessPayload,
         id: number,
-        dto: UpdateEventDto,
+        dto: EventDto,
         posterUrl: string,
     ) {
         try {
-            const user = await this.prismaService.user.findFirst({
+            const profile = await this.prismaService.profile.findUnique({
                 where: { auth0sub: accessPayload.sub },
             });
-            if (!user) {
-                this.logger.error("User not found");
-                throw new NotFoundException("User not found");
+            if (!profile) {
+                throw new NotFoundException("Profile not found");
             }
 
             const ogranizer = await this.prismaService.organizer.findFirst({
-                where: { userId: user.id },
+                where: { profileId: profile.id },
                 select: {
                     events: {
                         where: {

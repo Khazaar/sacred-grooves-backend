@@ -14,7 +14,7 @@ import {
     UploadedFile,
     UseGuards,
 } from "@nestjs/common";
-import { CreateEventDto, UpdateEventDto } from "./event.dto";
+import { EventDto } from "./event.dto";
 import { AccessPayload } from "../authz/accessPayload.dto";
 import { GetAccessPayload } from "../authz/getAccessPayloadDecorator";
 import { PermissionTypes } from "../authz/permissions.enum";
@@ -37,10 +37,11 @@ export class EventController {
 
     @Post()
     public async createEvent(
-        @Body() dto: CreateEventDto,
+        @Body() dto: EventDto,
         @GetAccessPayload() accessPayload: AccessPayload,
         @UploadedFile() file,
     ) {
+        this.logger.log("DTOOO", dto);
         let posterUrl = "";
         try {
             if (file) {
@@ -80,7 +81,7 @@ export class EventController {
     public async updateEventById(
         @GetAccessPayload() accessPayload: AccessPayload,
         @Param("id", ParseIntPipe) id: number,
-        @Body() dto: UpdateEventDto,
+        @Body() dto: EventDto,
         @UploadedFile() file,
     ) {
         let posterUrl = "";

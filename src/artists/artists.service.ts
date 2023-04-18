@@ -8,7 +8,7 @@ import {
 } from "@nestjs/common";
 import { AccessPayload } from "src/authz/accessPayload.dto";
 import { PrismaService } from "../prisma/prisma.service";
-import { CreateArtistDto, UpdateArtistDto } from "./artist.dto";
+import { ArtistDto } from "./artist.dto";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 
 @Injectable()
@@ -18,27 +18,27 @@ export class ArtistsService {
         @Inject(WINSTON_MODULE_NEST_PROVIDER)
         private readonly logger: LoggerService,
     ) {}
-    public async createArtist(accessPayload: AccessPayload) {
+    public async createArtist(accessPayload: AccessPayload, dto: ArtistDto) {
         try {
-            const user = await this.prismaService.user.findFirst({
+            const profile = await this.prismaService.profile.findUnique({
                 where: { auth0sub: accessPayload.sub },
             });
-            if (!user) {
-                throw new NotFoundException("User not found");
+            if (!profile) {
+                throw new NotFoundException("Profile not found");
             }
 
-            const artist = await this.prismaService.artist.create({
+            let artist = await this.prismaService.artist.create({
                 data: {
-                    userId: user.id,
+                    profileId: profile.id,
                     musicStyles: {},
                     artistTypes: {},
                 },
                 include: {
-                    user: true,
+                    profile: true,
                 },
             });
-            await this.prismaService.user.update({
-                where: { id: user.id },
+            await this.prismaService.profile.update({
+                where: { id: profile.id },
                 data: {
                     artist: {
                         connect: {
@@ -47,15 +47,40 @@ export class ArtistsService {
                     },
                 },
             });
+            artist = await this.prismaService.artist.update({
+                where: { profileId: profile.id },
+                data: {
+                    artistTypes: {
+                        set: dto.artistTypes
+                            ? dto.artistTypes?.map((artistType) => {
+                                  return { artistTypeName: artistType };
+                              })
+                            : [],
+                    },
+                    musicStyles: {
+                        set: dto.musicStyles
+                            ? dto.musicStyles?.map((musicSlyle) => {
+                                  return { musicStyleName: musicSlyle };
+                              })
+                            : [],
+                    },
+                },
+                include: {
+                    profile: true,
+                    artistTypes: true,
+                    musicStyles: true,
+                },
+            });
             return artist;
         } catch (error) {
+            this.logger.error(error);
             throw new InternalServerErrorException(error);
         }
     }
     public async getAllArtists() {
         const artists = await this.prismaService.artist.findMany({
             include: {
-                user: true,
+                profile: true,
                 artistTypes: true,
             },
         });
@@ -63,35 +88,35 @@ export class ArtistsService {
     }
     //test
 
-    public async updateArtistMe(
-        accessPayload: AccessPayload,
-        dto: UpdateArtistDto,
-    ) {
+    public async updateArtistMe(accessPayload: AccessPayload, dto: ArtistDto) {
         try {
-            const user = await this.prismaService.user.findFirst({
+            const profile = await this.prismaService.profile.findUnique({
                 where: { auth0sub: accessPayload.sub },
             });
-            if (!user) {
-                throw new NotFoundException("User not found");
+
+            if (!profile) {
+                throw new NotFoundException("Profile not found");
             }
             const artist = await this.prismaService.artist.update({
-                where: { userId: user.id },
+                where: { profileId: profile.id },
                 data: {
                     artistTypes: {
-                        set:
-                            dto.artistTypes?.map((artistType) => {
-                                return { artistTypeName: artistType };
-                            }) || [],
+                        set: dto.artistTypes
+                            ? dto.artistTypes?.map((artistType) => {
+                                  return { artistTypeName: artistType };
+                              })
+                            : [],
                     },
                     musicStyles: {
-                        set:
-                            dto.musicStyles?.map((musicSlyle) => {
-                                return { musicStyleName: musicSlyle };
-                            }) || [],
+                        set: dto.musicStyles
+                            ? dto.musicStyles?.map((musicSlyle) => {
+                                  return { musicStyleName: musicSlyle };
+                              })
+                            : [],
                     },
                 },
                 include: {
-                    user: true,
+                    profile: true,
                     artistTypes: true,
                     musicStyles: true,
                 },
@@ -105,14 +130,14 @@ export class ArtistsService {
 
     public async deleteArtistMe(accessPayload: AccessPayload) {
         try {
-            const user = await this.prismaService.user.findFirst({
+            const profile = await this.prismaService.profile.findUnique({
                 where: { auth0sub: accessPayload.sub },
             });
-            if (!user) {
-                throw new NotFoundException("User not found");
+            if (!profile) {
+                throw new NotFoundException("Profile not found");
             }
             const artist = await this.prismaService.artist.delete({
-                where: { userId: user.id },
+                where: { profileId: profile.id },
             });
             return artist;
         } catch (error) {
@@ -124,7 +149,7 @@ export class ArtistsService {
         const artist = await this.prismaService.artist.findFirst({
             where: { id: artistId },
             include: {
-                user: true,
+                profile: true,
             },
         });
         if (!artist) {

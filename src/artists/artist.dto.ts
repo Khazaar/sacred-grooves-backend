@@ -1,15 +1,6 @@
 import { IsArray, IsNotEmpty, IsOptional } from "class-validator";
 
-export class CreateArtistDto {
-    @IsArray()
-    @IsNotEmpty()
-    artistTypes: string[];
-    @IsArray()
-    @IsNotEmpty()
-    musicStyles: string[];
-}
-
-export class UpdateArtistDto {
+export class ArtistDto {
     @IsArray()
     @IsOptional()
     artistTypes?: string[];

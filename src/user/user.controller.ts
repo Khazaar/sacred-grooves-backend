@@ -1,4 +1,4 @@
-import { CreateUserDto, EditUserDto } from "./user.dto";
+import { UserDto } from "./user.dto";
 import {
     BadRequestException,
     Body,
@@ -37,25 +37,12 @@ export class UserController {
     public maxSizeInBytes = 5 * 1024 * 1024; // 2 MB
 
     @Post()
-    @UseInterceptors(FileInterceptor("file"))
     public async createUser(
         @GetAccessPayload() accessPayload: AccessPayload,
-        @Body() dto: CreateUserDto,
-        @UploadedFile() file,
+        @Body() dto: UserDto,
     ) {
-        let avatarUrl = "";
         try {
-            if (file) {
-                if (file.size > this.maxSizeInBytes) {
-                    throw new BadRequestException(
-                        "File size exceeds the maximum allowed size",
-                    );
-                }
-
-                this.logger.log(file);
-                avatarUrl = await this.cloudAwsService.uploadImageToS3AWS(file);
-            }
-            return this.userService.createUser(dto, accessPayload, avatarUrl);
+            return this.userService.createUser(dto, accessPayload);
         } catch (error) {
             this.logger.error(error);
             throw new InternalServerErrorException(error);
@@ -75,7 +62,7 @@ export class UserController {
     @Patch("me")
     public async editMe(
         @GetAccessPayload() accessPayload: AccessPayload,
-        @Body() dto: EditUserDto,
+        @Body() dto: UserDto,
         @UploadedFile() file,
     ) {
         console.log(dto);

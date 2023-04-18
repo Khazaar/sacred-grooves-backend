@@ -11,7 +11,7 @@ import {
     Delete,
     Patch,
 } from "@nestjs/common";
-import { CreateArtistDto, UpdateArtistDto } from "./artist.dto";
+import { ArtistDto } from "./artist.dto";
 import { AuthGuard } from "@nestjs/passport";
 import { PermissionsGuard } from "../authz/permissions.guard";
 import { GetAccessPayload } from "../authz/getAccessPayloadDecorator";
@@ -25,8 +25,9 @@ export class ArtistsController {
     @Post()
     public async createArtist(
         @GetAccessPayload() accessPayload: AccessPayload,
+        @Body() dto: ArtistDto,
     ) {
-        return await this.artistsService.createArtist(accessPayload);
+        return await this.artistsService.createArtist(accessPayload, dto);
     }
     @Get()
     public async getAllArtists() {
@@ -35,7 +36,7 @@ export class ArtistsController {
     @Patch("me")
     public async updateMe(
         @GetAccessPayload() accessPayload: AccessPayload,
-        @Body() dto: UpdateArtistDto,
+        @Body() dto: ArtistDto,
     ) {
         return await this.artistsService.updateArtistMe(accessPayload, dto);
     }

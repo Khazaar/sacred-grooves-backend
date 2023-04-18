@@ -1,4 +1,4 @@
-import { CreateOrganizerDto, UpdateOrganizerDto } from "./organizer.dto";
+import { OrganizerDto } from "./organizer.dto";
 import { OrganizerService } from "./organizer.service";
 import {
     Body,
@@ -22,13 +22,14 @@ export class OrganizerController {
     @Post()
     public async createOrganizer(
         @GetAccessPayload() accessPayload: AccessPayload,
+        @Body() dto: OrganizerDto,
     ) {
-        return await this.organizerService.createOrganizer(accessPayload);
+        return await this.organizerService.createOrganizer(accessPayload, dto);
     }
     @Patch("me")
     public async updateOrganizer(
         @GetAccessPayload() accessPayload: AccessPayload,
-        @Body() dto: UpdateOrganizerDto,
+        @Body() dto: OrganizerDto,
     ) {
         return await this.organizerService.updateOrganizer(accessPayload, dto);
     }
