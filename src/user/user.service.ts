@@ -88,8 +88,8 @@ export class UserService {
 
     public async editUser(
         accessPayload: AccessPayload,
-        dto: EditUserDto,
-        avatarUrl: string,
+
+        dto?: EditUserDto,
     ) {
         let user = await this.prismaService.user.findFirst({
             where: { auth0sub: accessPayload.sub },
@@ -120,12 +120,6 @@ export class UserService {
                 email: dto.email,
                 nickName: dto.nickName,
                 auth0sub: accessPayload.sub,
-                avatar: {
-                    create: {
-                        pictureS3Url: avatarUrl,
-                        title: `Avatar for ${dto.nickName}`,
-                    },
-                },
                 mapLocation: {
                     connect: { id: mapLocation.id },
                 },
@@ -136,6 +130,34 @@ export class UserService {
             include: {
                 avatar: true,
                 mapLocation: true,
+            },
+        });
+        return user;
+    }
+
+    public async updateAvaratUrl(
+        accessPayload: AccessPayload,
+        avatarUrl: string,
+    ) {
+        let user = await this.prismaService.user.findFirst({
+            where: { auth0sub: accessPayload.sub },
+        });
+        if (!user) {
+            throw new NotFoundException("User not found");
+        }
+
+        user = await this.prismaService.user.update({
+            where: { auth0sub: accessPayload.sub },
+            data: {
+                avatar: {
+                    create: {
+                        pictureS3Url: avatarUrl,
+                        title: `Avatar for ${accessPayload.sub}`,
+                    },
+                },
+            },
+            include: {
+                avatar: true,
             },
         });
         return user;
