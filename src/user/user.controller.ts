@@ -63,20 +63,10 @@ export class UserController {
     public async editMe(
         @GetAccessPayload() accessPayload: AccessPayload,
         @Body() dto: UserDto,
-        @UploadedFile() file,
     ) {
         console.log(dto);
         let avatarUrl = "";
         try {
-            if (file) {
-                if (file.size > this.maxSizeInBytes) {
-                    throw new BadRequestException(
-                        "File size exceeds the maximum allowed size",
-                    );
-                }
-                this.logger.log(file);
-                avatarUrl = await this.cloudAwsService.uploadImageToS3AWS(file);
-            }
             return await this.userService.editUser(accessPayload, dto);
         } catch (error) {
             this.logger.error(error);
@@ -85,26 +75,15 @@ export class UserController {
     }
 
     @Post("me/avatar")
-    @UseInterceptors(FileInterceptor("file"))
     public async editMeAvatar(
         @GetAccessPayload() accessPayload: AccessPayload,
-        @UploadedFile() file,
+        @Body("avatarUrl") avatarUrl: string,
     ) {
-        let avatarUrl = "";
         try {
-            if (file) {
-                if (file.size > this.maxSizeInBytes) {
-                    throw new BadRequestException(
-                        "File size exceeds the maximum allowed size",
-                    );
-                }
-                this.logger.log(file);
-                avatarUrl = await this.cloudAwsService.uploadImageToS3AWS(file);
-                return await this.userService.updateAvaratUrl(
-                    accessPayload,
-                    avatarUrl,
-                );
-            }
+            return await this.userService.updateUserAvaratUrl(
+                accessPayload,
+                avatarUrl,
+            );
         } catch (error) {
             this.logger.error(error);
             throw new InternalServerErrorException(error);

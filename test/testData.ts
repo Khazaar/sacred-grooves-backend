@@ -1,4 +1,4 @@
-import { CreateArtistTypeDto } from "src/artist-type/artist-type.dto";
+import { ArtistTypeDto } from "src/artist-type/artist-type.dto";
 import { ArtistDto } from "src/artists/artist.dto";
 import { AuthDto } from "src/authz/auth.dto";
 import { EventDto } from "src/event/event.dto";
@@ -53,7 +53,7 @@ export abstract class TestData {
         this.profileKaya,
         this.profilePeter,
     ];
-    public static artistTypes: CreateArtistTypeDto[] = [
+    public static artistTypes: ArtistTypeDto[] = [
         {
             artistTypeName: "DJ",
         },
@@ -159,12 +159,12 @@ export abstract class TestData {
     // Artist
     public static createArtistDtoKhazaar: ArtistDto = {
         artistTypes: [
-            TestData.artistTypes[0].artistTypeName,
-            TestData.artistTypes[1].artistTypeName,
+            { artistTypeName: TestData.artistTypes[0].artistTypeName },
+            { artistTypeName: TestData.artistTypes[1].artistTypeName },
         ],
         musicStyles: [
-            TestData.musicStyles[0].musicStyleName,
-            TestData.musicStyles[1].musicStyleName,
+            { musicStyleName: TestData.musicStyles[0].musicStyleName },
+            { musicStyleName: TestData.musicStyles[1].musicStyleName },
         ],
     };
 

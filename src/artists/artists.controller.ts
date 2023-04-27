@@ -22,16 +22,16 @@ import { AccessPayload } from "../authz/accessPayload.dto";
 export class ArtistsController {
     constructor(private readonly artistsService: ArtistsService) {}
 
-    @Post()
-    public async createArtist(
-        @GetAccessPayload() accessPayload: AccessPayload,
-        @Body() dto: ArtistDto,
-    ) {
-        return await this.artistsService.createArtist(accessPayload, dto);
-    }
+    // @Post("me")
+    // public async createArtist(
+    //     @GetAccessPayload() accessPayload: AccessPayload,
+    //     @Body() dto: ArtistDto,
+    // ) {
+    //     return await this.artistsService.createArtist(accessPayload, dto);
+    // }
     @Get()
-    public async getAllArtists() {
-        return await this.artistsService.getAllArtists();
+    public async getAllArtistsProfiles() {
+        //return await this.artistsService.getAllArtistsProfiles();
     }
     @Patch("me")
     public async updateMe(

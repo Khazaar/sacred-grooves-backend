@@ -4,4 +4,5 @@ export class MusicStyleDto {
     @IsNotEmpty()
     @IsString()
     musicStyleName: string;
+    isSelected?: boolean;
 }

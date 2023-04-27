@@ -11,6 +11,7 @@ import { AccessPayload } from "../authz/accessPayload.dto";
 import { Prisma } from "@prisma/client";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import { use } from "passport";
+import { connect } from "http2";
 
 @Injectable()
 export class UserService {
@@ -54,6 +55,12 @@ export class UserService {
                     profile: {
                         connect: { id: profile.id },
                     },
+                    avatar: {
+                        create: {
+                            pictureS3Url: "",
+                            title: `Avatar for ${profile.auth0sub}`,
+                        },
+                    },
                 },
                 include: {
                     avatar: true,
@@ -83,11 +90,7 @@ export class UserService {
         return user;
     }
 
-    public async editUser(
-        accessPayload: AccessPayload,
-
-        dto?: UserDto,
-    ) {
+    public async editUser(accessPayload: AccessPayload, dto?: UserDto) {
         const profile = await this.prismaService.profile.findUnique({
             where: { auth0sub: accessPayload.sub },
         });
@@ -95,7 +98,13 @@ export class UserService {
             where: { profileId: profile.id },
         });
         if (!user) {
-            throw new NotFoundException("User not found");
+            user = await this.prismaService.user.create({
+                data: {
+                    profile: {
+                        connect: { id: profile.id },
+                    },
+                },
+            });
         }
         let mapLocation = await this.prismaService.mapLocation.create({
             data: {},
@@ -112,11 +121,38 @@ export class UserService {
                     longitude: dto.mapLocation.longitude,
                 },
             });
+            await this.prismaService.user.update({
+                where: { id: user.id },
+                data: {
+                    mapLocation: {
+                        connect: { id: mapLocation.id },
+                    },
+                },
+            });
+        }
+        if (dto.avatar) {
+            const avatar = await this.prismaService.picture.create({
+                data: {
+                    pictureS3Url: dto.avatar.pictureS3Url,
+                    title: dto.avatar.title,
+                },
+            });
+            await this.prismaService.user.update({
+                where: { id: user.id },
+                data: {
+                    avatar: {
+                        connect: {
+                            id: avatar.id,
+                        },
+                    },
+                },
+            });
         }
 
         user = await this.prismaService.user.update({
             where: { id: user.id },
             data: {
+                email: dto.email,
                 nickName: dto.nickName,
                 mapLocation: {
                     connect: { id: mapLocation.id },
@@ -133,7 +169,7 @@ export class UserService {
         return user;
     }
 
-    public async updateAvaratUrl(
+    public async updateUserAvaratUrl(
         accessPayload: AccessPayload,
         avatarUrl: string,
     ) {
@@ -147,14 +183,19 @@ export class UserService {
         if (!user) {
             throw new NotFoundException("User not found");
         }
+        const avatar = await this.prismaService.picture.update({
+            where: { id: user.avatarPictureId },
+            data: {
+                pictureS3Url: avatarUrl,
+            },
+        });
 
         user = await this.prismaService.user.update({
             where: { id: user.id },
             data: {
                 avatar: {
-                    create: {
-                        pictureS3Url: avatarUrl,
-                        title: `Avatar for ${accessPayload.sub}`,
+                    connect: {
+                        id: avatar.id,
                     },
                 },
             },
