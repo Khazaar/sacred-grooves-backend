@@ -1,51 +1,88 @@
-import { CreateArtistTypeDto } from "src/artist-type/artist-type.dto";
-import { CreateArtistDto } from "src/artists/artist.dto";
+import { ArtistTypeDto } from "src/artist-type/artist-type.dto";
+import { ArtistDto } from "src/artists/artist.dto";
 import { AuthDto } from "src/authz/auth.dto";
-import { CreateEventDto } from "src/event/event.dto";
+import { EventDto } from "src/event/event.dto";
 import { MusicStyleDto } from "src/music-style/music-style.dto";
-import { CreateOrganizerDto } from "src/organizer/organizer.dto";
-import { CreateUserDto } from "../src/user/user.dto";
+import { OrganizerDto } from "src/organizer/organizer.dto";
+import { UserDto } from "../src/user/user.dto";
 import { MapLocation } from "../src/enums";
+import { ProfileDto } from "../src/profile/profile.dto";
 
 class CreateUserDtoTest {
     nickName?: string;
     access_token?: string;
     tokenKey?: string;
-    auth: AuthDto;
     mapLocation?: MapLocation;
+    email?: string;
+}
+export class ProfileDtoTest extends ProfileDto {
+    password: string;
+    tokenKey?: string;
+    email?: string;
 }
 
 export abstract class TestData {
-    public static artistTypes: CreateArtistTypeDto[] = [
+    public static profileKhazaar: ProfileDtoTest = {
+        password: "asdfasd_fasdg345",
+        auth0sub: "auth0|6416f1a272c885b94f3b2c8e",
+        tokenKey: "userAt_khazaar",
+        email: "khazaar@gmail.com",
+    };
+    public static profileMari: ProfileDtoTest = {
+        password: "sdfas!dasyeer2",
+        auth0sub: "auth0|6417004d72c885b94f3b2d28",
+        tokenKey: "userAt_mari",
+        email: "mari@gmail.com",
+    };
+    public static profileKaya: ProfileDtoTest = {
+        password: "sdfas33%$dasyeer",
+        auth0sub: "auth0|64170068936cc041cfc21971",
+        tokenKey: "userAt_kaya",
+        email: "kaya@gmail.com",
+    };
+    public static profilePeter: ProfileDtoTest = {
+        password: "5645&^%3yrte434u5786yrt",
+        auth0sub: "auth0|6417007f72c885b94f3b2d2c",
+        tokenKey: "userAt_peter",
+        email: "peter@gmail.com",
+    };
+
+    public static profiles = [
+        this.profileKhazaar,
+        this.profileMari,
+        this.profileKaya,
+        this.profilePeter,
+    ];
+    public static artistTypes: ArtistTypeDto[] = [
         {
-            artisitTypeName: "DJ",
+            artistTypeName: "DJ",
         },
         {
-            artisitTypeName: "Singer",
+            artistTypeName: "Singer",
         },
         {
-            artisitTypeName: "Percussion player",
+            artistTypeName: "Percussion player",
         },
         {
-            artisitTypeName: "Guitar player",
+            artistTypeName: "Guitar player",
         },
         {
-            artisitTypeName: "Electronic music producer",
+            artistTypeName: "Electronic music producer",
         },
         {
-            artisitTypeName: "Painter",
+            artistTypeName: "Painter",
         },
         {
-            artisitTypeName: "Ceremony leader",
+            artistTypeName: "Ceremony leader",
         },
         {
-            artisitTypeName: "Dancer",
+            artistTypeName: "Dancer",
         },
         {
-            artisitTypeName: "Face painter",
+            artistTypeName: "Face painter",
         },
         {
-            artisitTypeName: "Type to edit",
+            artistTypeName: "Type to edit",
         },
     ];
     public static musicStyles: MusicStyleDto[] = [
@@ -75,13 +112,15 @@ export abstract class TestData {
             musicStyleName: "Music style to edit",
         },
     ];
+
+    // Profiles
+
     // Users
     public static createUserDtoKhazaar: CreateUserDtoTest = {
         nickName: "Khazaar",
-        auth: {
-            email: "khazaar@gmail.com",
-            password: "asdfasd_fasdg345",
-        },
+        tokenKey: "userAt_khazaar",
+        email: "khazaar@gmail.com",
+
         mapLocation: {
             name: "Bass house",
             latitude: 55.5,
@@ -94,42 +133,43 @@ export abstract class TestData {
 
     public static createUserDtoMari: CreateUserDtoTest = {
         nickName: "Marii",
-        auth: {
-            email: "mari@gmail.com",
-            password: "sdfas!dasyeer2",
-        },
+        tokenKey: "userAt_mari",
+        email: "mari@gmail.com",
     };
 
     public static createUserDtoKaya: CreateUserDtoTest = {
         nickName: "Kaya the bird",
-        auth: {
-            email: "kaya@gmail.com",
-            password: "sdfas33%$dasyeer",
-        },
+        tokenKey: "userAt_kaya",
+        email: "kaya@gmail.com",
     };
 
     public static createUserDtoPeter: CreateUserDtoTest = {
         nickName: "Peter Power",
-        auth: {
-            email: "peter@gmail.com",
-            password: "5645&^%3yrte434u5786yrt",
-        },
+        tokenKey: "userAt_peter",
+        email: "peter@gmail.com",
     };
 
+    public static users = [
+        TestData.createUserDtoKhazaar,
+        TestData.createUserDtoMari,
+        TestData.createUserDtoKaya,
+        TestData.createUserDtoPeter,
+    ];
+
     // Artist
-    public static createArtistDtoKhazaar: CreateArtistDto = {
+    public static createArtistDtoKhazaar: ArtistDto = {
         artistTypes: [
-            TestData.artistTypes[0].artisitTypeName,
-            TestData.artistTypes[1].artisitTypeName,
+            { artistTypeName: TestData.artistTypes[0].artistTypeName },
+            { artistTypeName: TestData.artistTypes[1].artistTypeName },
         ],
         musicStyles: [
-            TestData.musicStyles[0].musicStyleName,
-            TestData.musicStyles[1].musicStyleName,
+            { musicStyleName: TestData.musicStyles[0].musicStyleName },
+            { musicStyleName: TestData.musicStyles[1].musicStyleName },
         ],
     };
 
     // Organizer
-    public static createOrganizerDtoMari: CreateOrganizerDto = {
+    public static createOrganizerDtoMari: OrganizerDto = {
         mainLocation: "Siberia",
     };
     // Moderator

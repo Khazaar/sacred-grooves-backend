@@ -1,19 +1,14 @@
+import { MusicStyle } from "@prisma/client";
 import { IsArray, IsNotEmpty, IsOptional } from "class-validator";
+import { ArtistTypeDto } from "src/artist-type/artist-type.dto";
+import { MusicStyleDto } from "src/music-style/music-style.dto";
 
-export class CreateArtistDto {
-    @IsArray()
-    @IsNotEmpty()
-    artistTypes: string[];
-    @IsArray()
-    @IsNotEmpty()
-    musicStyles: string[];
-}
-
-export class UpdateArtistDto {
+export class ArtistDto {
     @IsArray()
     @IsOptional()
-    artistTypes?: string[];
+    artistTypes?: ArtistTypeDto[];
     @IsArray()
     @IsOptional()
-    musicSlyles?: string[];
+    musicStyles?: MusicStyleDto[];
+    isActive: boolean;
 }

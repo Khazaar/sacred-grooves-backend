@@ -6,7 +6,7 @@ import {
 } from "@nestjs/common";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import { PrismaService } from "../prisma/prisma.service";
-import { CreateArtistTypeDto } from "./artist-type.dto";
+import { ArtistTypeDto } from "./artist-type.dto";
 
 @Injectable()
 export class ArtistTypeService {
@@ -15,11 +15,11 @@ export class ArtistTypeService {
         @Inject(WINSTON_MODULE_NEST_PROVIDER)
         private readonly logger: LoggerService,
     ) {}
-    public async createArtistType(dto: CreateArtistTypeDto) {
+    public async createArtistType(dto: ArtistTypeDto) {
         try {
             const artistType = await this.prismaService.artistType.create({
                 data: {
-                    artisitTypeName: dto.artisitTypeName,
+                    artistTypeName: dto.artistTypeName,
                 },
             });
             return artistType;
@@ -39,12 +39,12 @@ export class ArtistTypeService {
     }
     public async updateArtistTypeById(
         artistTypeId: number,
-        dto: CreateArtistTypeDto,
+        dto: ArtistTypeDto,
     ) {
         const artistType = await this.prismaService.artistType.update({
             where: { id: artistTypeId },
             data: {
-                artisitTypeName: dto.artisitTypeName,
+                artistTypeName: dto.artistTypeName,
             },
         });
         return artistType;

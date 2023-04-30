@@ -1,4 +1,4 @@
-import { CreateUserDto, EditUserDto } from "./user.dto";
+import { UserDto } from "./user.dto";
 import {
     BadRequestException,
     Body,
@@ -34,28 +34,15 @@ export class UserController {
         private readonly cloudAwsService: CloudAwsService,
     ) {}
 
-    public maxSizeInBytes = 3 * 1024 * 1024; // 2 MB
+    public maxSizeInBytes = 5 * 1024 * 1024; // 2 MB
 
     @Post()
-    @UseInterceptors(FileInterceptor("file"))
     public async createUser(
         @GetAccessPayload() accessPayload: AccessPayload,
-        @Body() dto: CreateUserDto,
-        @UploadedFile() file,
+        @Body() dto: UserDto,
     ) {
-        let avatarUrl = "";
         try {
-            if (file) {
-                if (file.size > this.maxSizeInBytes) {
-                    throw new BadRequestException(
-                        "File size exceeds the maximum allowed size",
-                    );
-                }
-
-                this.logger.log(file);
-                avatarUrl = await this.cloudAwsService.uploadImageToS3AWS(file);
-            }
-            return this.userService.createUser(dto, accessPayload, avatarUrl);
+            return this.userService.createUser(dto, accessPayload);
         } catch (error) {
             this.logger.error(error);
             throw new InternalServerErrorException(error);
@@ -75,24 +62,26 @@ export class UserController {
     @Patch("me")
     public async editMe(
         @GetAccessPayload() accessPayload: AccessPayload,
-        @Body() dto: EditUserDto,
-        @UploadedFile() file,
+        @Body() dto: UserDto,
     ) {
         console.log(dto);
         let avatarUrl = "";
         try {
-            if (file) {
-                if (file.size > this.maxSizeInBytes) {
-                    throw new BadRequestException(
-                        "File size exceeds the maximum allowed size",
-                    );
-                }
-                this.logger.log(file);
-                avatarUrl = await this.cloudAwsService.uploadImageToS3AWS(file);
-            }
-            return await this.userService.editUser(
+            return await this.userService.editUser(accessPayload, dto);
+        } catch (error) {
+            this.logger.error(error);
+            throw new InternalServerErrorException(error);
+        }
+    }
+
+    @Post("me/avatar")
+    public async editMeAvatar(
+        @GetAccessPayload() accessPayload: AccessPayload,
+        @Body("avatarUrl") avatarUrl: string,
+    ) {
+        try {
+            return await this.userService.updateUserAvaratUrl(
                 accessPayload,
-                dto,
                 avatarUrl,
             );
         } catch (error) {

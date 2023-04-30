@@ -12,7 +12,7 @@ import {
 import { AuthGuard } from "@nestjs/passport";
 import { PermissionsGuard } from "../authz/permissions.guard";
 import { Permissions } from "../authz/permissions.decorator";
-import { CreateArtistTypeDto } from "./artist-type.dto";
+import { ArtistTypeDto } from "./artist-type.dto";
 import { ArtistTypeService } from "./artist-type.service";
 import { PermissionTypes } from "../authz/permissions.enum";
 
@@ -23,7 +23,7 @@ export class ArtistTypeController {
 
     @Post()
     @Permissions(PermissionTypes.cudArtistTypes)
-    public async createArtistType(@Body() dto: CreateArtistTypeDto) {
+    public async createArtistType(@Body() dto: ArtistTypeDto) {
         return await this.artistTypeService.createArtistType(dto);
     }
 
@@ -41,7 +41,7 @@ export class ArtistTypeController {
     @Permissions(PermissionTypes.cudArtistTypes)
     public async editArtistTypeById(
         @Param("id", ParseIntPipe) id: number,
-        @Body() dto: CreateArtistTypeDto,
+        @Body() dto: ArtistTypeDto,
     ) {
         return await this.artistTypeService.updateArtistTypeById(id, dto);
     }

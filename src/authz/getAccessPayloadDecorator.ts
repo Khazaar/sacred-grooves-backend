@@ -8,6 +8,7 @@ export const GetAccessPayload = createParamDecorator(
             sub: request.user.sub,
             permissions: request.user.permissions,
         };
+        //console.log("accessPayloadddd", request.user);
         return accessPayload;
     },
 );

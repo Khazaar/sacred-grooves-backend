@@ -1,11 +1,7 @@
 import { IsNotEmpty, IsOptional } from "class-validator";
 
-export class CreateOrganizerDto {
+export class OrganizerDto {
     @IsOptional()
     mainLocation: string;
-}
-
-export class UpdateOrganizerDto {
-    @IsOptional()
-    mainLocation?: string;
+    isActive: boolean;
 }

@@ -7,11 +7,24 @@ export class MusicStyleService {
     constructor(private readonly prismaService: PrismaService) {}
     public async createMusicStyle(dto: MusicStyleDto) {
         try {
+            const artists = await this.prismaService.artist.findMany({});
             const musicStyle = await this.prismaService.musicStyle.create({
                 data: {
                     musicStyleName: dto.musicStyleName,
+                    isSelected: false,
                 },
             });
+            artists.map(async (artist) => {
+                await this.prismaService.artist.update({
+                    where: { id: artist.id },
+                    data: {
+                        musicStyles: {
+                            connect: { id: musicStyle.id },
+                        },
+                    },
+                });
+            });
+
             return musicStyle;
         } catch (error) {
             return new InternalServerErrorException(error);

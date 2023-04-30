@@ -6,11 +6,12 @@ import {
     NotFoundException,
 } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import { CreateUserDto, EditUserDto } from "./user.dto";
-import * as argon from "argon2";
+import { UserDto } from "./user.dto";
 import { AccessPayload } from "../authz/accessPayload.dto";
 import { Prisma } from "@prisma/client";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
+import { use } from "passport";
+import { connect } from "http2";
 
 @Injectable()
 export class UserService {
@@ -20,53 +21,58 @@ export class UserService {
         private readonly prismaService: PrismaService,
     ) {}
 
-    public async createUser(
-        dto: CreateUserDto,
-        accessPayload: AccessPayload,
-        avatarUrl: any,
-    ) {
-        const mapLocation = await this.prismaService.mapLocation.create({
-            data: {},
-        });
-
-        if (dto.mapLocation) {
-            await this.prismaService.mapLocation.update({
-                where: { id: mapLocation.id },
-                data: {
-                    name: dto.mapLocation.name,
-                    address: dto.mapLocation.address,
-                    city: dto.mapLocation.city,
-                    country: dto.mapLocation.country,
-                    latitude: dto.mapLocation.latitude,
-                    longitude: dto.mapLocation.longitude,
-                },
+    public async createUser(dto: UserDto, accessPayload: AccessPayload) {
+        try {
+            const profile = await this.prismaService.profile.findUnique({
+                where: { auth0sub: accessPayload.sub },
             });
-        }
-        const user = await this.prismaService.user.create({
-            data: {
-                email: dto.email,
-                nickName: dto.nickName,
-                auth0sub: accessPayload.sub,
-                avatar: {
-                    create: {
-                        pictureS3Url: avatarUrl,
-                        title: `Avatar for ${dto.nickName}`,
+            const mapLocation = await this.prismaService.mapLocation.create({
+                data: {},
+            });
+
+            if (dto.mapLocation) {
+                await this.prismaService.mapLocation.update({
+                    where: { id: mapLocation.id },
+                    data: {
+                        name: dto.mapLocation.name,
+                        address: dto.mapLocation.address,
+                        city: dto.mapLocation.city,
+                        country: dto.mapLocation.country,
+                        latitude: dto.mapLocation.latitude,
+                        longitude: dto.mapLocation.longitude,
+                    },
+                });
+            }
+            const user = await this.prismaService.user.create({
+                data: {
+                    email: dto.email,
+                    nickName: dto.nickName,
+                    firstName: dto.firstName,
+                    lastName: dto.lastName,
+                    mapLocation: {
+                        connect: { id: mapLocation.id },
+                    },
+                    profile: {
+                        connect: { id: profile.id },
+                    },
+                    avatar: {
+                        create: {
+                            pictureS3Url: "",
+                            title: `Avatar for ${profile.auth0sub}`,
+                        },
                     },
                 },
-                mapLocation: {
-                    connect: { id: mapLocation.id },
+                include: {
+                    avatar: true,
+                    mapLocation: true,
                 },
-            },
-            include: {
-                avatar: true,
-                mapLocation: true,
-            },
-        });
+            });
 
-        if (!user) {
-            throw new NotFoundException("User not found");
+            return user;
+        } catch (error) {
+            this.logger.error(error);
+            throw new InternalServerErrorException(error);
         }
-        return user;
     }
 
     public async getAllUsers() {
@@ -84,16 +90,21 @@ export class UserService {
         return user;
     }
 
-    public async editUser(
-        accessPayload: AccessPayload,
-        dto: EditUserDto,
-        avatarUrl: string,
-    ) {
-        let user = await this.prismaService.user.findFirst({
+    public async editUser(accessPayload: AccessPayload, dto?: UserDto) {
+        const profile = await this.prismaService.profile.findUnique({
             where: { auth0sub: accessPayload.sub },
         });
+        let user = await this.prismaService.user.findFirst({
+            where: { profileId: profile.id },
+        });
         if (!user) {
-            throw new NotFoundException("User not found");
+            user = await this.prismaService.user.create({
+                data: {
+                    profile: {
+                        connect: { id: profile.id },
+                    },
+                },
+            });
         }
         let mapLocation = await this.prismaService.mapLocation.create({
             data: {},
@@ -110,20 +121,39 @@ export class UserService {
                     longitude: dto.mapLocation.longitude,
                 },
             });
+            await this.prismaService.user.update({
+                where: { id: user.id },
+                data: {
+                    mapLocation: {
+                        connect: { id: mapLocation.id },
+                    },
+                },
+            });
+        }
+        if (dto.avatar) {
+            const avatar = await this.prismaService.picture.create({
+                data: {
+                    pictureS3Url: dto.avatar.pictureS3Url,
+                    title: dto.avatar.title,
+                },
+            });
+            await this.prismaService.user.update({
+                where: { id: user.id },
+                data: {
+                    avatar: {
+                        connect: {
+                            id: avatar.id,
+                        },
+                    },
+                },
+            });
         }
 
         user = await this.prismaService.user.update({
-            where: { auth0sub: accessPayload.sub },
+            where: { id: user.id },
             data: {
                 email: dto.email,
                 nickName: dto.nickName,
-                auth0sub: accessPayload.sub,
-                avatar: {
-                    create: {
-                        pictureS3Url: avatarUrl,
-                        title: `Avatar for ${dto.nickName}`,
-                    },
-                },
                 mapLocation: {
                     connect: { id: mapLocation.id },
                 },
@@ -139,10 +169,50 @@ export class UserService {
         return user;
     }
 
+    public async updateUserAvaratUrl(
+        accessPayload: AccessPayload,
+        avatarUrl: string,
+    ) {
+        const profile = await this.prismaService.profile.findUnique({
+            where: { auth0sub: accessPayload.sub },
+        });
+        let user = await this.prismaService.user.findFirst({
+            where: { profileId: profile.id },
+        });
+
+        if (!user) {
+            throw new NotFoundException("User not found");
+        }
+        const avatar = await this.prismaService.picture.update({
+            where: { id: user.avatarPictureId },
+            data: {
+                pictureS3Url: avatarUrl,
+            },
+        });
+
+        user = await this.prismaService.user.update({
+            where: { id: user.id },
+            data: {
+                avatar: {
+                    connect: {
+                        id: avatar.id,
+                    },
+                },
+            },
+            include: {
+                avatar: true,
+            },
+        });
+        return user;
+    }
+
     public async getMe(accessPayload: AccessPayload) {
         try {
-            const user = await this.prismaService.user.findFirst({
+            const profile = await this.prismaService.profile.findUnique({
                 where: { auth0sub: accessPayload.sub },
+            });
+            let user = await this.prismaService.user.findFirst({
+                where: { profileId: profile.id },
             });
             if (!user) {
                 throw new NotFoundException("User not found");

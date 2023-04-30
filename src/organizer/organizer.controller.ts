@@ -1,6 +1,14 @@
-import { CreateOrganizerDto, UpdateOrganizerDto } from "./organizer.dto";
+import { OrganizerDto } from "./organizer.dto";
 import { OrganizerService } from "./organizer.service";
-import { Body, Controller, Get, Post, Put, UseGuards } from "@nestjs/common";
+import {
+    Body,
+    Controller,
+    Get,
+    Patch,
+    Post,
+    Put,
+    UseGuards,
+} from "@nestjs/common";
 import { AccessPayload } from "../authz/accessPayload.dto";
 import { GetAccessPayload } from "../authz/getAccessPayloadDecorator";
 import { AuthGuard } from "@nestjs/passport";
@@ -14,14 +22,14 @@ export class OrganizerController {
     @Post()
     public async createOrganizer(
         @GetAccessPayload() accessPayload: AccessPayload,
-        @Body() dto: CreateOrganizerDto,
+        @Body() dto: OrganizerDto,
     ) {
         return await this.organizerService.createOrganizer(accessPayload, dto);
     }
-    @Put("me")
+    @Patch("me")
     public async updateOrganizer(
         @GetAccessPayload() accessPayload: AccessPayload,
-        @Body() dto: UpdateOrganizerDto,
+        @Body() dto: OrganizerDto,
     ) {
         return await this.organizerService.updateOrganizer(accessPayload, dto);
     }

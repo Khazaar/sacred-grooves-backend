@@ -10,51 +10,58 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Profile {
+  id          Int          @id @default(autoincrement())
+  auth0sub    String       @unique
+  user        User?
+  artist      Artist?
+  organizer   Organizer?
+  visitor     Visitor?
+  supportTeam SupportTeam?
+}
+
 model User {
   id              Int          @id @default(autoincrement())
-  auth0sub        String?      @unique
+  email           String?
   nickName        String?
   firstName       String?
   lastName        String?
   telegramName    String?
-  email           String       @unique
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
-  Artist          Artist?
-  Organizer       Organizer?
-  Visitor         Visitor?
-  Moderator       Moderator?
-  SupportTeam     SupportTeam?
   mapLocation     MapLocation? @relation(fields: [locationId], references: [id])
-  roles           String[]
   avatar          Picture?     @relation(fields: [avatarPictureId], references: [id])
   avatarPictureId Int?         @unique
   locationId      Int?
+  profile         Profile      @relation(fields: [profileId], references: [id])
+  profileId       Int          @unique
 }
 
 model Artist {
   id          Int          @id @default(autoincrement())
-  userId      Int          @unique
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profileId   Int          @unique
+  profile     Profile      @relation(fields: [profileId], references: [id], onDelete: Cascade)
   events      Event[]
   isApproved  Boolean      @default(false)
   artistTypes ArtistType[]
-  musicSlyles MusicStyle[]
+  musicStyles MusicStyle[]
+  isActive    Boolean      @default(false)
 }
 
 model Organizer {
   id           Int     @id @default(autoincrement())
-  userId       Int     @unique
-  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile      Profile @relation(fields: [profileId], references: [id])
+  profileId    Int     @unique
   mainLocation String?
   events       Event[]
   isApproved   Boolean @default(false)
+  isActive     Boolean @default(false)
 }
 
 model Visitor {
-  id     Int  @id @default(autoincrement())
-  userId Int  @unique
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        Int     @id @default(autoincrement())
+  profile   Profile @relation(fields: [profileId], references: [id])
+  profileId Int     @unique
 }
 
 model Event {
@@ -63,8 +70,8 @@ model Event {
   description     String
   ogranizerId     Int
   ogranizer       Organizer    @relation(fields: [ogranizerId], references: [id], onDelete: Cascade)
-  artisitId       Int
-  artists         Artist       @relation(fields: [artisitId], references: [id], onDelete: Cascade)
+  artistId        Int
+  artists         Artist       @relation(fields: [artistId], references: [id], onDelete: Cascade)
   visitorsId      Int?
   mapLocation     MapLocation? @relation(fields: [locationId], references: [id])
   dateStart       DateTime?
@@ -75,30 +82,27 @@ model Event {
   locationId      Int?
 }
 
-model Moderator {
-  id     Int  @id @default(autoincrement())
-  userId Int  @unique
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
 model ArtistType {
-  id              Int     @id @default(autoincrement())
-  artistId        Int?
-  artist          Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  artisitTypeName String  @unique
+  id             Int     @id @default(autoincrement())
+  artistId       Int?
+  artist         Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  artistTypeName String  @unique
+  isSelected     Boolean @default(false)
 }
 
 model MusicStyle {
   id             Int     @id @default(autoincrement())
   musicStyleName String  @unique
+  isSelected     Boolean @default(false)
   artistId       Int?
   artist         Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
 }
 
 model SupportTeam {
-  id            Int  @id @default(autoincrement())
-  supportTeamId Int  @unique
-  user          User @relation(fields: [supportTeamId], references: [id], onDelete: Cascade)
+  id            Int     @id @default(autoincrement())
+  profile       Profile @relation(fields: [profileId], references: [id])
+  profileId     Int     @unique
+  isActive      Boolean @default(false)
 }
 
 model Picture {
