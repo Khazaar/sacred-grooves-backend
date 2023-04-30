@@ -10,4 +10,5 @@ export class ArtistDto {
     @IsArray()
     @IsOptional()
     musicStyles?: MusicStyleDto[];
+    isActive: boolean;
 }

@@ -8,7 +8,9 @@ import {
     LoggerService,
     Param,
     ParseIntPipe,
+    Patch,
     Post,
+    Put,
     Query,
     UseGuards,
 } from "@nestjs/common";
@@ -18,6 +20,7 @@ import { AccessPayload } from "../authz/accessPayload.dto";
 import { GetAccessPayload } from "../authz/getAccessPayloadDecorator";
 import { PermissionsGuard } from "../authz/permissions.guard";
 import { ProfileService } from "./profile.service";
+import { ProfileDto } from "./profile.dto";
 
 @Controller("profiles")
 export class ProfileController {
@@ -30,15 +33,20 @@ export class ProfileController {
     @Get()
     public async getProfiles(
         // @GetAccessPayload() accessPayload: AccessPayload,
-        @Query("targetId", ParseIntPipe) targetId: number,
+        @Query("targetId") targetId: string,
         @Query("targetRole") targetRole: string,
+        @Query("targetSub") targetSub: string,
     ) {
         try {
-            if (targetId !== 0) {
-                return await this.profileService.getProfileById(targetId);
+            if (targetId) {
+                const targetIdInt = parseInt(targetId, 10);
+                return await this.profileService.getProfileById(targetIdInt);
             }
-            if (targetRole !== "undefined") {
+            if (targetRole) {
                 return await this.profileService.getProfilesByRole(targetRole);
+            }
+            if (targetSub) {
+                return await this.profileService.getProfileBySub(targetSub);
             }
         } catch (error) {
             this.logger.error(error);
@@ -61,6 +69,24 @@ export class ProfileController {
     ) {
         try {
             return this.profileService.createProfile(accessPayload.sub);
+        } catch (error) {
+            this.logger.error(error);
+            throw new InternalServerErrorException();
+        }
+    }
+    @UseGuards(AuthGuard("jwt"), PermissionsGuard)
+    @Patch("me")
+    public async updateProfileMe(
+        @GetAccessPayload() accessPayload: AccessPayload,
+        @Body() dto: ProfileDto,
+    ) {
+        if (accessPayload.sub != dto.auth0sub) {
+            throw new InternalServerErrorException(
+                "You can edit only your own profile",
+            );
+        }
+        try {
+            return this.profileService.updateProfileMe(dto);
         } catch (error) {
             this.logger.error(error);
             throw new InternalServerErrorException();

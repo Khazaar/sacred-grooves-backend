@@ -12,4 +12,6 @@ export class ProfileDto {
     organizer?: OrganizerDto;
     @IsOptional()
     artist?: ArtistDto;
+    @IsOptional()
+    supportTeam?: any;
 }

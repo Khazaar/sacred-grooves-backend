@@ -11,8 +11,8 @@ datasource db {
 }
 
 model Profile {
-  id       Int    @id @default(autoincrement())
-  auth0sub String @unique
+  id          Int          @id @default(autoincrement())
+  auth0sub    String       @unique
   user        User?
   artist      Artist?
   organizer   Organizer?
@@ -22,7 +22,7 @@ model Profile {
 
 model User {
   id              Int          @id @default(autoincrement())
-  email    String?
+  email           String?
   nickName        String?
   firstName       String?
   lastName        String?
@@ -45,6 +45,7 @@ model Artist {
   isApproved  Boolean      @default(false)
   artistTypes ArtistType[]
   musicStyles MusicStyle[]
+  isActive    Boolean      @default(false)
 }
 
 model Organizer {
@@ -54,8 +55,7 @@ model Organizer {
   mainLocation String?
   events       Event[]
   isApproved   Boolean @default(false)
-
-  @@map("organizer")
+  isActive     Boolean @default(false)
 }
 
 model Visitor {
@@ -100,9 +100,9 @@ model MusicStyle {
 
 model SupportTeam {
   id            Int     @id @default(autoincrement())
-  supportTeamId Int     @unique
   profile       Profile @relation(fields: [profileId], references: [id])
   profileId     Int     @unique
+  isActive      Boolean @default(false)
 }
 
 model Picture {
